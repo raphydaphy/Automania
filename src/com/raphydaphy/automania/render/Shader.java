@@ -1,4 +1,4 @@
-package com.raphydaphy.automania.shader;
+package com.raphydaphy.automania.render;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;

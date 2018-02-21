@@ -197,4 +197,9 @@ public class Automania
 
     }
 
+    public static boolean isGL32()
+    {
+        return GL.getCapabilities().OpenGL32;
+    }
+
 }
