@@ -6,8 +6,12 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +55,14 @@ public class Automania
             throw new IllegalStateException("Cannot initialize GLFW :(");
         }
 
-        window = GLFW.glfwCreateWindow(640, 480, "automania", MemoryUtil.NULL, MemoryUtil.NULL);
+        GLFW.glfwDefaultWindowHints();
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
+
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+
+        window = GLFW.glfwCreateWindow(640, 480, "Automania", MemoryUtil.NULL, MemoryUtil.NULL);
 
         if (window == MemoryUtil.NULL)
         {
@@ -66,11 +77,30 @@ public class Automania
         GLFW.glfwMakeContextCurrent(window);
         GL.createCapabilities();
 
-
         width = MemoryUtil.memAllocInt(1);
         height = MemoryUtil.memAllocInt(1);
 
+        // vertex array object
+        int vao = GL30.glGenVertexArrays();
+        GL30.glBindVertexArray(vao);
+
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            FloatBuffer vertices = stack.mallocFloat(3 * 6);
+            vertices.put(-0.6f).put(-0.4f).put(0f).put(1f).put(0f).put(0f);
+            vertices.put(0.6f).put(-0.4f).put(0f).put(0f).put(1f).put(0f);
+            vertices.put(0f).put(0.6f).put(0f).put(0f).put(0f).put(1f);
+            vertices.flip();
+
+            // vertex buffer object
+            int vbo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices, GL15.GL_STATIC_DRAW);
+        }
+
         gameLoop();
+
+        GL30.glDeleteVertexArrays(vao);
 
         MemoryUtil.memFree(width);
         MemoryUtil.memFree(height);
@@ -85,15 +115,27 @@ public class Automania
     public void gameLoop()
     {
         float delta;
+        float accumulator = 0f;
+        float interval = 1f / TARGET_TPS;
+        float alpha;
 
         while (!GLFW.glfwWindowShouldClose(window))
         {
             delta = timer.getDeltaTime();
+            accumulator += delta;
 
-            update(delta);
-            timer.updateTPS();
+            // process input
 
-            render();
+            while (accumulator >= interval)
+            {
+                update(1f / TARGET_TPS);
+                timer.updateTPS();
+                accumulator -= interval;
+            }
+
+
+            alpha = accumulator / interval;
+            render(alpha);
             timer.updateFPS();
 
             timer.update();
@@ -101,6 +143,7 @@ public class Automania
             System.out.println("FPS:" + timer.getFPS() + ", TPS: " + timer.getTPS());
 
             sync(TARGET_FPS);
+
         }
     }
 
@@ -114,7 +157,8 @@ public class Automania
         {
             Thread.yield();
 
-            try {
+            try
+            {
                 Thread.sleep(1);
             } catch (InterruptedException e)
             {
@@ -124,12 +168,12 @@ public class Automania
         }
     }
 
-    public void update(float deltaTime)
+    public void update(float delta)
     {
 
     }
 
-    public void render()
+    public void render(float alpha)
 
     {
         float ratio;
@@ -143,28 +187,14 @@ public class Automania
         GL11.glViewport(0, 0, width.get(), height.get());
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
-        GL11.glMatrixMode(GL11.GL_PROJECTION);
-        GL11.glLoadIdentity();
-        GL11.glOrtho(-ratio, ratio, -1f, 1f, 1f, -1f);
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
-
-        GL11.glLoadIdentity();
-        GL11.glRotatef((float) GLFW.glfwGetTime() * 50f, 0f, 0f, 1f);
-
-        GL11.glBegin(GL11.GL_TRIANGLES);
-        GL11.glColor3f(0f, 1f, 0f);
-        GL11.glVertex3f(-6f, -4f, 0f);
-        GL11.glColor3f(0f, 1f, 0f);
-        GL11.glVertex3f(0.6f, -0.4f, 0f);
-        GL11.glColor3f(0f, 0f, 1f);
-        GL11.glVertex3f(0f, 0.6f, 0f);
-        GL11.glEnd();
+        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3);
 
         GLFW.glfwSwapBuffers(window);
         GLFW.glfwPollEvents();
 
         width.flip();
         height.flip();
+
     }
 
 }
