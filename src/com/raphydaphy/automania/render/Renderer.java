@@ -9,13 +9,14 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 public class Renderer
 {
-	private VertexBufferObject vbo;
-	private VertexArrayObject vao;
+	public VertexBufferObject vbo;
+	public VertexArrayObject vao;
 	private ShaderProgram program;
 
 	private FloatBuffer vertices;
@@ -30,6 +31,10 @@ public class Renderer
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	public void clear()
+	{
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+	}
 
 	private void initShaders()
 	{
@@ -178,5 +183,99 @@ public class Renderer
 			vertices.clear();
 			numVertices = 0;
 		}
+	}
+
+	public void dispose()
+	{
+		MemoryUtil.memFree(vertices);
+
+		if (vao != null)
+		{
+			vao.delete();
+		}
+
+		vbo.delete();
+		program.delete();
+
+		// Dispose font
+		// Dispose debug font
+	}
+
+	public void drawTexture(Texture texture, float x, float y) {
+		drawTexture(texture, x, y, Color.WHITE);
+	}
+
+	public void drawTexture(Texture texture, float x, float y, Color c) {
+		/* Vertex positions */
+		float x1 = x;
+		float y1 = y;
+		float x2 = x1 + texture.getWidth();
+		float y2 = y1 + texture.getHeight();
+
+		/* Texture coordinates */
+		float s1 = 0f;
+		float t1 = 0f;
+		float s2 = 1f;
+		float t2 = 1f;
+
+		drawTextureRegion(x1, y1, x2, y2, s1, t1, s2, t2, c);
+	}
+
+	public void drawTextureRegion(Texture texture, float x, float y, float regX, float regY, float regWidth, float regHeight) {
+		drawTextureRegion(texture, x, y, regX, regY, regWidth, regHeight, Color.WHITE);
+	}
+
+	public void drawTextureRegion(Texture texture, float x, float y, float regX, float regY, float regWidth, float regHeight, Color c) {
+		/* Vertex positions */
+		float x1 = x;
+		float y1 = y;
+		float x2 = x + regWidth;
+		float y2 = y + regHeight;
+
+		/* Texture coordinates */
+		float s1 = regX / texture.getWidth();
+		float t1 = regY / texture.getHeight();
+		float s2 = (regX + regWidth) / texture.getWidth();
+		float t2 = (regY + regHeight) / texture.getHeight();
+
+		drawTextureRegion(x1, y1, x2, y2, s1, t1, s2, t2, c);
+	}
+
+	public void drawTextureRegion(float x1, float y1, float x2, float y2, float s1, float t1, float s2, float t2) {
+		drawTextureRegion(x1, y1, x2, y2, s1, t1, s2, t2, Color.WHITE);
+	}
+
+	public void drawTextureRegion(float x1, float y1, float x2, float y2, float s1, float t1, float s2, float t2, Color c) {
+		if (vertices.remaining() < 7 * 6) {
+			/* We need more space in the buffer, so flush it */
+			flush();
+		}
+
+		float r = c.getRed();
+		float g = c.getGreen();
+		float b = c.getBlue();
+		float a = c.getAlpha();
+
+		vertices.put(x1).put(y1).put(r).put(g).put(b).put(a).put(s1).put(t1);
+		vertices.put(x1).put(y2).put(r).put(g).put(b).put(a).put(s1).put(t2);
+		vertices.put(x2).put(y2).put(r).put(g).put(b).put(a).put(s2).put(t2);
+
+		vertices.put(x1).put(y1).put(r).put(g).put(b).put(a).put(s1).put(t1);
+		vertices.put(x2).put(y2).put(r).put(g).put(b).put(a).put(s2).put(t2);
+		vertices.put(x2).put(y1).put(r).put(g).put(b).put(a).put(s2).put(t1);
+
+		numVertices += 6;
+	}
+
+	public Renderer add(float pos)
+	{
+		if (vertices.remaining() < 1)
+		{
+			flush();
+		}
+
+		vertices.put(pos);
+		numVertices++;
+		return this;
 	}
 }

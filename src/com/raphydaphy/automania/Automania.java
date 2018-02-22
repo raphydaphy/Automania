@@ -1,5 +1,8 @@
 package com.raphydaphy.automania;
 
+import com.raphydaphy.automania.math.Vector2f;
+import com.raphydaphy.automania.render.Renderer;
+import com.raphydaphy.automania.render.Texture;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -11,6 +14,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.logging.Level;
@@ -18,188 +22,179 @@ import java.util.logging.Logger;
 
 public class Automania
 {
-    private GLFWErrorCallback errorCallback = GLFWErrorCallback.createPrint(System.err);
+	private static final int TARGET_FPS = 60;
+	private static final int TARGET_TPS = 40;
+	private GLFWErrorCallback errorCallback = GLFWErrorCallback.createPrint(System.err);
+	private GLFWKeyCallback keyCallback = new GLFWKeyCallback()
+	{
+		@Override
+		public void invoke(long window, int key, int scancode, int action, int mods)
+		{
+			if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_PRESS)
+			{
+				GLFW.glfwSetWindowShouldClose(window, true);
+			}
+		}
+	};
+	private long window;
+	private GameTimer timer;
+	private Renderer renderer;
 
-    private GLFWKeyCallback keyCallback = new GLFWKeyCallback()
-    {
-        @Override
-        public void invoke(long window, int key, int scancode, int action, int mods)
-        {
-            if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_PRESS)
-            {
-                GLFW.glfwSetWindowShouldClose(window, true);
-            }
-        }
-    };
+	private int width;
+	private int height;
 
-    private long window;
+	private Texture example;
 
-    public static final int TARGET_FPS = 60;
-    public static final int TARGET_TPS = 40;
+	public static boolean isGL32()
+	{
+		return GL.getCapabilities().OpenGL32;
+	}
 
-    private GameTimer timer;
+	public void start()
+	{
+		System.out.println("Ver: " + Version.getVersion());
 
-    private IntBuffer width;
-    private IntBuffer height;
+		timer = new GameTimer();
+		renderer = new Renderer();
 
-    public void start()
-    {
-        System.out.println("Ver: " + Version.getVersion());
+		GLFW.glfwSetErrorCallback(errorCallback);
 
-        timer = new GameTimer();
+		if (!GLFW.glfwInit())
+		{
+			throw new IllegalStateException("Cannot initialize GLFW :(");
+		}
 
-        GLFW.glfwSetErrorCallback(errorCallback);
+		GLFW.glfwDefaultWindowHints();
+		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
 
-        if (!GLFW.glfwInit())
-        {
-            throw new IllegalStateException("Cannot initialize GLFW :(");
-        }
+		GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+		GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
 
-        GLFW.glfwDefaultWindowHints();
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
+		window = GLFW.glfwCreateWindow(640, 480, "Automania", MemoryUtil.NULL, MemoryUtil.NULL);
 
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+		if (window == MemoryUtil.NULL)
+		{
+			GLFW.glfwTerminate();
+			throw new RuntimeException("Could not create the window, sorry :(");
+		}
 
-        window = GLFW.glfwCreateWindow(640, 480, "Automania", MemoryUtil.NULL, MemoryUtil.NULL);
+		GLFW.glfwSetKeyCallback(window, keyCallback);
 
-        if (window == MemoryUtil.NULL)
-        {
-            GLFW.glfwTerminate();
-            throw new RuntimeException("Could not create the window, sorry :(");
-        }
+		GLFW.glfwMakeContextCurrent(window);
+		GL.createCapabilities();
 
-        timer.init();
+		timer.init();
+		renderer.init();
 
-        GLFW.glfwSetKeyCallback(window, keyCallback);
+		int width, height;
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			long window = GLFW.glfwGetCurrentContext();
+			IntBuffer widthBuffer = stack.mallocInt(1);
+			IntBuffer heightBuffer = stack.mallocInt(1);
+			GLFW.glfwGetFramebufferSize(window, widthBuffer, heightBuffer);
+			width = widthBuffer.get();
+			height = heightBuffer.get();
+		}
 
-        GLFW.glfwMakeContextCurrent(window);
-        GL.createCapabilities();
+		example = Texture.loadTexture("resources/example.png");
 
-        width = MemoryUtil.memAllocInt(1);
-        height = MemoryUtil.memAllocInt(1);
+		this.width = width;
+		this.height = height;
 
-        // vertex array object
-        int vao = GL30.glGenVertexArrays();
-        GL30.glBindVertexArray(vao);
+		gameLoop();
 
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            FloatBuffer vertices = stack.mallocFloat(3 * 6);
-            vertices.put(-0.6f).put(-0.4f).put(0f).put(1f).put(0f).put(0f);
-            vertices.put(0.6f).put(-0.4f).put(0f).put(0f).put(1f).put(0f);
-            vertices.put(0f).put(0.6f).put(0f).put(0f).put(0f).put(1f);
-            vertices.flip();
+		example.delete();
 
-            // vertex buffer object
-            int vbo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices, GL15.GL_STATIC_DRAW);
-        }
+		renderer.dispose();
 
-        gameLoop();
+		GLFW.glfwDestroyWindow(window);
+		keyCallback.free();
 
-        GL30.glDeleteVertexArrays(vao);
+		GLFW.glfwTerminate();
+		errorCallback.free();
+	}
 
-        MemoryUtil.memFree(width);
-        MemoryUtil.memFree(height);
+	private void gameLoop()
+	{
+		float delta;
+		float accumulator = 0f;
+		float interval = 1f / TARGET_TPS;
+		float alpha;
 
-        GLFW.glfwDestroyWindow(window);
-        keyCallback.free();
+		GL11.glClearColor(0.5f, 0.5f, 0.5f, 1f);
 
-        GLFW.glfwTerminate();
-        errorCallback.free();
-    }
+		boolean running = true;
 
-    public void gameLoop()
-    {
-        float delta;
-        float accumulator = 0f;
-        float interval = 1f / TARGET_TPS;
-        float alpha;
+		while (running)
+		{
+			delta = timer.getDeltaTime();
+			accumulator += delta;
 
-        while (!GLFW.glfwWindowShouldClose(window))
-        {
-            delta = timer.getDeltaTime();
-            accumulator += delta;
+			// process input
 
-            // process input
-
-            while (accumulator >= interval)
-            {
-                update(1f / TARGET_TPS);
-                timer.updateTPS();
-                accumulator -= interval;
-            }
+			while (accumulator >= interval)
+			{
+				update(1f / TARGET_TPS);
+				timer.updateTPS();
+				accumulator -= interval;
+			}
 
 
-            alpha = accumulator / interval;
-            render(alpha);
-            timer.updateFPS();
+			alpha = accumulator / interval;
+			render(alpha);
+			timer.updateFPS();
 
-            timer.update();
+			timer.update();
 
-            System.out.println("FPS:" + timer.getFPS() + ", TPS: " + timer.getTPS());
+			System.out.println("FPS:" + timer.getFPS() + ", TPS: " + timer.getTPS());
 
-            sync(TARGET_FPS);
+			sync(TARGET_FPS);
 
-        }
-    }
+			if (GLFW.glfwWindowShouldClose(window))
+			{
+				running = false;
+			}
 
-    public void sync(int fps)
-    {
-        double lastLoopTime = timer.getLastLoopTime();
-        double now = timer.getTime();
-        float targetTime = 1f / fps;
+		}
+	}
 
-        while (now - lastLoopTime < targetTime)
-        {
-            Thread.yield();
+	private void sync(int fps)
+	{
+		double lastLoopTime = timer.getLastLoopTime();
+		double now = timer.getTime();
+		float targetTime = 1f / fps;
 
-            try
-            {
-                Thread.sleep(1);
-            } catch (InterruptedException e)
-            {
-                Logger.getLogger(Automania.class.getName()).log(Level.SEVERE, null, e);
-            }
-            now = timer.getTime();
-        }
-    }
+		while (now - lastLoopTime < targetTime)
+		{
+			Thread.yield();
 
-    public void update(float delta)
-    {
+			try
+			{
+				Thread.sleep(1);
+			} catch (InterruptedException e)
+			{
+				Logger.getLogger(Automania.class.getName()).log(Level.SEVERE, null, e);
+			}
+			now = timer.getTime();
+		}
+	}
 
-    }
+	private void update(float delta)
+	{
 
-    public void render(float alpha)
+	}
 
-    {
-        float ratio;
+	private void render(float alpha)
+	{
+		renderer.clear();
 
-        GLFW.glfwGetFramebufferSize(window, width, height);
-        ratio = width.get() / (float) height.get();
+		example.bind();
+		renderer.begin();
 
-        width.rewind();
-        height.rewind();
+		renderer.drawTextureRegion(example, 0, 0, 0, 0, width, height, Color.RED);
 
-        GL11.glViewport(0, 0, width.get(), height.get());
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-
-        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3);
-
-        GLFW.glfwSwapBuffers(window);
-        GLFW.glfwPollEvents();
-
-        width.flip();
-        height.flip();
-
-    }
-
-    public static boolean isGL32()
-    {
-        return GL.getCapabilities().OpenGL32;
-    }
+		renderer.end();
+	}
 
 }

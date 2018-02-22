@@ -29,7 +29,7 @@ public class VertexBufferObject
 		GL15.glBufferData(target, size, usage);
 	}
 
-	public void uploadData(int target, IntBuffer data, int usage)
+	public void uploadData(int target, FloatBuffer data, int usage)
 	{
 		GL15.glBufferData(target, data, usage);
 	}
