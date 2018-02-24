@@ -107,21 +107,10 @@ public class Renderer
             int worldX = Math.round((mouseX - (window.getWidth() / 2) - camera.getPosition().x) / scale);
             int worldY = -(Math.round((mouseY - (window.getHeight() / 2) + camera.getPosition().y) / scale));
 
-            System.out.println("Click at [" + mouseX + "," + mouseY + "] at world pos " + worldX + "," + worldY + "]");
-
             if (world.getTile(worldX, worldY) != null)
             {
-                System.out.println(world.getTile(worldX, worldY).getRegistryName());
                 world.setTile(Tile.REGISTRY.get(button), worldX, worldY);
-
-                System.out.println(Tile.REGISTRY.get(button));
             }
-            else
-            {
-                System.out.println("tile is nuller");
-            }
-
-            System.out.println("Processed Click");
         }
     }
 

@@ -4,7 +4,7 @@ import main.java.com.raphydaphy.automania.tile.Tile;
 
 public class World
 {
-    public static final int CHUNKS = 1;
+    public static final int CHUNKS = 7;
 
     private Chunk[] chunks;
 
@@ -22,15 +22,15 @@ public class World
 
     public Chunk getChunkFromWorldCoords(int x, int y)
     {
-        x /= Chunk.CHUNK_SIZE;
-        y /= Chunk.CHUNK_SIZE;
+        x = x == 0 ? 0 : (int)Math.floor ((float)x / Chunk.CHUNK_SIZE);
+        y = y == 0 ? 0 : (int)Math.floor ((float)y / Chunk.CHUNK_SIZE);
 
         return getChunkFromChunkCoords(x, y);
     }
 
     public Chunk getChunkFromChunkCoords(int x, int y)
     {
-        if (x < CHUNKS && y < CHUNKS)
+        if (x >= 0 && y >= 0 && x < CHUNKS && y < CHUNKS)
         {
             return chunks[x + y * CHUNKS];
         }
@@ -53,10 +53,9 @@ public class World
     {
         Chunk chunk = getChunkFromWorldCoords(x, y);
 
-        System.out.println("Trying to set tile at world coord " + x + ", " + y);
+
         if (chunk != null)
         {
-            System.out.println("Got chunk to set tile at chunk grid pos " + chunk.chunkX + ", " + chunk.chunkY);
             return chunk.setTileFromWorldCoord(tile, x, y);
         }
 

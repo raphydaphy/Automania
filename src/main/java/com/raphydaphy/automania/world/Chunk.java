@@ -33,6 +33,9 @@ public class Chunk
         x += chunkX * CHUNK_SIZE;
         y += chunkY * CHUNK_SIZE;
 
+        x %= CHUNK_SIZE;
+        y %= CHUNK_SIZE;
+
         return getTileFromInnerCoord(x, y);
     }
 
@@ -50,15 +53,16 @@ public class Chunk
         x += chunkX * CHUNK_SIZE;
         y += chunkY * CHUNK_SIZE;
 
+        x %= CHUNK_SIZE;
+        y %= CHUNK_SIZE;
+
         return setTileFromInnerCoord(tile, x, y);
     }
 
     public boolean setTileFromInnerCoord(Tile tile, int x, int y)
     {
-        System.out.println("Trying to set tile inside chunk with inner coord " + x + ", " + y);
         if (x >= 0 && y >= 0 && x < CHUNK_SIZE && y < CHUNK_SIZE)
         {
-            System.out.println("Pos is valid, set tile!");
             tiles[x + y * CHUNK_SIZE] = tile;
             return true;
         }
