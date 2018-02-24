@@ -1,23 +1,21 @@
 package main.java.com.raphydaphy.automania.tile;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Tile
 {
-    public static final Map<Integer, Tile> REGISTRY = new HashMap<>();
+    public static final List<Tile> REGISTRY = new ArrayList<>();
 
     private String registryName;
     private String unlocalizedName;
 
     private boolean visible;
-    private int id;
 
     private TileRenderer<Tile> renderer;
 
     public Tile(String name)
     {
-        id = -1;
         visible = true;
 
         setRegistryName(name);
@@ -26,8 +24,7 @@ public class Tile
 
     public Tile register()
     {
-        id = REGISTRY.size() + 1;
-        REGISTRY.put(id, this);
+        REGISTRY.add(this);
 
         renderer = new TileRenderer<>(this);
         return this;

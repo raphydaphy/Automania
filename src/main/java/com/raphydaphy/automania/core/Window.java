@@ -1,5 +1,6 @@
 package main.java.com.raphydaphy.automania.core;
 
+import main.java.com.raphydaphy.automania.graphics.Renderer;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -53,12 +54,10 @@ public class Window
         GLFW.glfwMakeContextCurrent(window);
         GLFW.glfwSwapInterval(1);
 
-        setCallbacks();
-
         return this;
     }
 
-    private Window setCallbacks()
+    public Window setCallbacks(Renderer renderer)
     {
         GLFW.glfwSetWindowSizeCallback(window, (argWindow, argWidth, argHeight) ->
         {
@@ -81,11 +80,11 @@ public class Window
             }
         });
 
-        GLFW.glfwSetMouseButtonCallback(window, (window, button, action, mods) ->
+        GLFW.glfwSetMouseButtonCallback(window, (argWindow, argButton, argAction, argMods) ->
         {
-            if (action == GLFW.GLFW_RELEASE)
+            if (argAction == GLFW.GLFW_RELEASE)
             {
-
+                renderer.processMouseClick(this, argWindow, argButton, argAction, argMods);
             }
         });
 

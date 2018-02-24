@@ -45,6 +45,8 @@ public class Automania
         GL.createCapabilities();
 
         renderer = new Renderer().init(window);
+
+        window.setCallbacks(renderer);
     }
 
     public void loop()
