@@ -94,7 +94,6 @@ public class Window
 
     public Window destroy()
     {
-        System.out.println("ded son");
         Callbacks.glfwFreeCallbacks(window);
         GLFW.glfwDestroyWindow(window);
 

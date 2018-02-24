@@ -1,6 +1,8 @@
 package main.java.com.raphydaphy.automania.graphics;
 
 import main.java.com.raphydaphy.automania.core.Window;
+import main.java.com.raphydaphy.automania.init.GameTiles;
+import main.java.com.raphydaphy.automania.tile.Tile;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
@@ -13,7 +15,6 @@ public class Renderer
     private Camera camera;
     private Matrix4f world;
     private Model square;
-    private Texture missing;
 
     private int scale;
     private int viewX;
@@ -36,7 +37,8 @@ public class Renderer
         square = new Model(new float[]{-0.5f, 0.5f, 0, 0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0},
                 new float[]{0, 0, 1, 0, 1, 1, 0, 1}, 0, 1, 2, 2, 3, 0);
 
-        missing = new Texture("hah i doint exit");
+        GameTiles.init();
+
         vao.unbind();
 
         return this;
@@ -49,9 +51,6 @@ public class Renderer
         shader.bind();
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
-        missing.bind(0);
-        shader.setUniform("sampler", 0);
-
         int screenX = (int) camera.getPosition().x / (scale);
         int screenY = (int) camera.getPosition().y / (scale);
 
@@ -59,24 +58,19 @@ public class Renderer
         {
             for (int j = 0; j < viewY; j++)
             {
-                Matrix4f tile_pos = new Matrix4f().translate(i - screenX - (viewX / 2) + 1, -j - screenY + (viewY / 2), 0);
-                Matrix4f target = new Matrix4f();
-
-                camera.getProjection().mul(world, target);
-                target.mul(tile_pos);
-
-                shader.setUniform("projection", target);
-                square.render();
+                GameTiles.GRASS.getRenderer().render(shader, null, camera, square, world, i - screenX - (viewX / 2) + 1, -j - screenY + (viewY / 2));
             }
         }
-
 
         vao.unbind();
     }
 
     public void cleanup()
     {
-        missing.delete();
+        for (Tile tile : Tile.REGISTRY.values())
+        {
+            tile.getRenderer().delete();
+        }
         square.delete();
         vao.delete();
         shader.delete();

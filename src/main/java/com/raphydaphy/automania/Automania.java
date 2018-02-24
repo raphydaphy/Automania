@@ -39,7 +39,7 @@ public class Automania
             throw new IllegalStateException("Failed to initiate GLFW");
         }
 
-        window = new Window().init("Missing Textures : The Game");
+        window = new Window().init("Automania");
         timer = new Timer().init();
 
         GL.createCapabilities();
