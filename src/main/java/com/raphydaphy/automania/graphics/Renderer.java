@@ -31,7 +31,7 @@ public class Renderer
 
         calculateView(window);
 
-        world = new Matrix4f().setTranslation(new Vector3f(0));
+        world = new Matrix4f().setTranslation(new Vector3f(0)).scale(scale);
 
         square = new Model(new float[]{-0.5f, 0.5f, 0, 0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0},
                 new float[]{0, 0, 1, 0, 1, 1, 0, 1}, 0, 1, 2, 2, 3, 0);
@@ -50,11 +50,26 @@ public class Renderer
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
         missing.bind(0);
-
         shader.setUniform("sampler", 0);
-        //shader.setUniform("projection", camera.getProjection().mul(world, new Matrix4f()).mul(new Matrix4f().translate(0, 0, 0)));
-        shader.setUniform("projection", new Matrix4f().translate(new Vector3f(0)));
-        square.render();
+
+        int screenX = (int) camera.getPosition().x / (scale);
+        int screenY = (int) camera.getPosition().y / (scale);
+
+        for (int i = 0; i < viewX; i++)
+        {
+            for (int j = 0; j < viewY; j++)
+            {
+                Matrix4f tile_pos = new Matrix4f().translate(i - screenX - (viewX / 2) + 1, -j - screenY + (viewY / 2), 0);
+                Matrix4f target = new Matrix4f();
+
+                camera.getProjection().mul(world, target);
+                target.mul(tile_pos);
+
+                shader.setUniform("projection", target);
+                square.render();
+            }
+        }
+
 
         vao.unbind();
     }
@@ -88,12 +103,12 @@ public class Renderer
 
         if (window.isKeyDown(GLFW.GLFW_KEY_W))
         {
-            camera.move(0, 5, 0);
+            camera.move(0, -5, 0);
         }
 
         if (window.isKeyDown(GLFW.GLFW_KEY_S))
         {
-            camera.move(0, -5, 0);
+            camera.move(0, 5, 0);
         }
     }
 
