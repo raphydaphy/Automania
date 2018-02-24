@@ -40,11 +40,11 @@ public class Automania
         }
 
         window = new Window().init("Automania");
-        timer = new Timer();
+        timer = new Timer().init();
 
         GL.createCapabilities();
 
-        renderer = new Renderer().init();
+        renderer = new Renderer().init(window);
     }
 
     public void loop()
@@ -70,9 +70,9 @@ public class Automania
 
             alpha = accumulator / interval;
             render(alpha);
-
             timer.updateFPS();
-            timer.updateTPS();
+
+            timer.update();
 
             timer.sync();
         }
@@ -80,7 +80,7 @@ public class Automania
 
     public void update(float delta)
     {
-
+        renderer.update(window);
     }
 
     public void render(float alpha)

@@ -1,12 +1,8 @@
 package main.java.com.raphydaphy.automania.core;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.glfw.GLFWWindowSizeCallback;
-
-import java.nio.DoubleBuffer;
 
 public class Window
 {
@@ -134,6 +130,11 @@ public class Window
     public boolean shouldClose()
     {
         return GLFW.glfwWindowShouldClose(window);
+    }
+
+    public boolean isKeyDown(int key)
+    {
+        return GLFW.glfwGetKey(window, key) == 1;
     }
 
     public void setSize(int width, int height)

@@ -16,11 +16,13 @@ public class Timer
     private int tps;
     private int tpsCount;
 
-    public void init()
+    public Timer init()
     {
         targetFPS = 60;
         targetTPS = 40;
         lastLoopTime = GLFW.glfwGetTime();
+
+        return this;
     }
 
     public float getDeltaTime()
@@ -78,11 +80,12 @@ public class Timer
 
     public void sync()
     {
-        double lastLoopTime = getLastLoopTime();
+        double tempLastLoopTime = getLastLoopTime();
         double now = getTime();
         float targetTime = 1f / targetFPS;
 
-        while (now - lastLoopTime < targetTime)
+
+        while (now - tempLastLoopTime < targetTime)
         {
             Thread.yield();
 
