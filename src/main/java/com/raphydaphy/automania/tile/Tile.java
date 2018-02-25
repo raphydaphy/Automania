@@ -80,6 +80,6 @@ public class Tile
 
     public AABB getBounds(World world, int x, int y)
     {
-        return TILE_AABB;
+        return isVisible() ? TILE_AABB : null;
     }
 }

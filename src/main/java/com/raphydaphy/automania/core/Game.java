@@ -1,5 +1,6 @@
 package main.java.com.raphydaphy.automania.core;
 
+import main.java.com.raphydaphy.automania.entity.Player;
 import main.java.com.raphydaphy.automania.graphics.Renderer;
 import main.java.com.raphydaphy.automania.util.InteractionManager;
 import main.java.com.raphydaphy.automania.world.World;
@@ -8,12 +9,15 @@ public class Game
 {
     private World world;
     private Renderer renderer;
+    private Player player;
     private InteractionManager manager;
 
     public Game init(Window window)
     {
-        renderer = new Renderer().init(window);
+        player = new Player();
+        renderer = new Renderer().init(window, player);
         world = new World();
+
         manager = new InteractionManager();
 
         window.setCallbacks(manager);
@@ -23,7 +27,7 @@ public class Game
 
     public Game update(Window window, float delta)
     {
-        renderer.update(window);
+        manager.update(window, delta, world, player, renderer);
         return this;
     }
 
@@ -37,6 +41,11 @@ public class Game
     {
         renderer.cleanup();
         return this;
+    }
+
+    public Player getPlayer()
+    {
+        return player;
     }
 
     public World getWorld()

@@ -2,17 +2,15 @@ package main.java.com.raphydaphy.automania.graphics;
 
 import main.java.com.raphydaphy.automania.Automania;
 import main.java.com.raphydaphy.automania.core.Window;
+import main.java.com.raphydaphy.automania.entity.Player;
 import main.java.com.raphydaphy.automania.init.GameTiles;
 import main.java.com.raphydaphy.automania.tile.Tile;
 import main.java.com.raphydaphy.automania.util.VertexArray;
 import main.java.com.raphydaphy.automania.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-
-import java.nio.DoubleBuffer;
 
 public class Renderer
 {
@@ -26,7 +24,7 @@ public class Renderer
     private int viewX;
     private int viewY;
 
-    public Renderer init(Window window)
+    public Renderer init(Window window, Player player)
     {
         scale = 64;
 
@@ -48,6 +46,8 @@ public class Renderer
                 0, 0, 0},
                 new float[]{0, 0, 1, 0, 1, 1, 0, 1}, 0, 1, 2, 2, 3, 0);
 
+
+        player.init(this);
 
         vao.unbind();
 
@@ -82,6 +82,8 @@ public class Renderer
             }
         }
 
+        Automania.getInstance().getGame().getPlayer().render(shader, camera);
+
         vao.unbind();
     }
 
@@ -94,36 +96,6 @@ public class Renderer
         square.delete();
         vao.delete();
         shader.delete();
-    }
-
-    public void update(Window window)
-    {
-        if (window.hasResized())
-        {
-            camera.setProjection(window.getWidth(), window.getHeight());
-            GL11.glViewport(0, 0, window.getWidth(), window.getHeight());
-            calculateView(window);
-        }
-
-        if (window.isKeyDown(GLFW.GLFW_KEY_A))
-        {
-            camera.move(5, 0, 0);
-        }
-
-        if (window.isKeyDown(GLFW.GLFW_KEY_D))
-        {
-            camera.move(-5, 0, 0);
-        }
-
-        if (window.isKeyDown(GLFW.GLFW_KEY_W))
-        {
-            camera.move(0, -5, 0);
-        }
-
-        if (window.isKeyDown(GLFW.GLFW_KEY_S))
-        {
-            camera.move(0, 5, 0);
-        }
     }
 
     public void calculateView(Window window)
