@@ -8,9 +8,13 @@ import main.java.com.raphydaphy.automania.tile.Tile;
 import main.java.com.raphydaphy.automania.util.VertexArray;
 import main.java.com.raphydaphy.automania.world.World;
 import org.joml.Matrix4f;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Renderer
 {
@@ -69,6 +73,8 @@ public class Renderer
 
         World world = Automania.getInstance().getGame().getWorld();
 
+        Map<Vector2i, Texture> extras = new HashMap<>();
+
         for (int i = 0; i < viewX; i++)
         {
             for (int j = 0; j < viewY; j++)
@@ -80,7 +86,7 @@ public class Renderer
 
                 if (tile != null && tile.isVisible())
                 {
-                    tile.getRenderer().render(shader, world, camera, square, view, x, y);
+                    tile.getRenderer().render(shader, world, camera, square, view, extras, x, y);
                 }
             }
         }

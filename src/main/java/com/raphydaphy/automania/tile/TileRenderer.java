@@ -6,6 +6,10 @@ import main.java.com.raphydaphy.automania.graphics.Shader;
 import main.java.com.raphydaphy.automania.graphics.Texture;
 import main.java.com.raphydaphy.automania.world.World;
 import org.joml.Matrix4f;
+import org.joml.Vector2i;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TileRenderer<T extends Tile>
 {
@@ -14,6 +18,9 @@ public class TileRenderer<T extends Tile>
     private Texture texture_left;
     private Texture texture_right;
     private Texture texture_both;
+    private Texture texture_top_left;
+    private Texture texture_top_right;
+    private Texture texture_top_both;
 
     public TileRenderer(T tile)
     {
@@ -24,10 +31,13 @@ public class TileRenderer<T extends Tile>
             texture_left = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_left.png");
             texture_right = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_right.png");
             texture_both = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_both.png");
+            texture_top_left = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_top_left.png");
+            texture_top_right = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_top_right.png");
+            texture_top_both = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_top_both.png");
         }
     }
 
-    public void render(Shader shader, World world, Camera camera, Model model, Matrix4f view, int x, int y)
+    public void render(Shader shader, World world, Camera camera, Model model, Matrix4f view, Map<Vector2i, Texture> extras, int x, int y)
     {
         if (tile.isVisible())
         {
@@ -42,6 +52,7 @@ public class TileRenderer<T extends Tile>
             {
                 if (texture_left.isValidTexture())
                 {
+                    extras.put(new Vector2i(x, y - 1), texture_top_left);
                     tex = texture_left;
                     flagLeft = true;
                 }
@@ -51,6 +62,7 @@ public class TileRenderer<T extends Tile>
             {
                 if (texture_right.isValidTexture())
                 {
+                    extras.put(new Vector2i(x, y - 1), texture_top_right);
                     tex = texture_right;
                     flagRight = true;
                 }
@@ -58,9 +70,32 @@ public class TileRenderer<T extends Tile>
 
             if (flagRight && flagLeft)
             {
+                extras.put(new Vector2i(x, y - 1), texture_top_both);
                 tex = texture_both;
             }
             tex.bind(0);
+
+            Matrix4f tile_pos = new Matrix4f().translate(x, y, 0);
+            Matrix4f target = new Matrix4f();
+
+            camera.getProjection().mul(view, target);
+            target.mul(tile_pos);
+
+            shader.setUniform("sampler", 0);
+            shader.setUniform("projection", target);
+
+            model.render();
+
+            renderExtras(camera, shader, model, view, extras, x, y);
+        }
+    }
+
+    public void renderExtras(Camera camera, Shader shader, Model model, Matrix4f view, Map<Vector2i, Texture> extras, int x, int y)
+    {
+        Vector2i pos = new Vector2i(x, y);
+        if (extras.containsKey(pos) && extras.get(pos) != null)
+        {
+            extras.get(pos).bind(0);
 
             Matrix4f tile_pos = new Matrix4f().translate(x, y, 0);
             Matrix4f target = new Matrix4f();
