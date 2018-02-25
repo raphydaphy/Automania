@@ -50,6 +50,11 @@ public class AABB
         return this.getX1() < other.getX2() && this.getX2() > other.getX1() && this.getY1() < other.getY2() && this.getY2() > other.getY1();
     }
 
+    public boolean touches(AABB other)
+    {
+        return this.getX1() <= other.getX2() && this.getX2() >= other.getX1() && this.getY1() <= other.getY2() && this.getY2() >= other.getY1();
+    }
+
     public boolean containsPoint(float x, float y)
     {
         return this.getX1() <= x && this.getX2() >= x && this.getY1() <= y && this.getY2() >= y;

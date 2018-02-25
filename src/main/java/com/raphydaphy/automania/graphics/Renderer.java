@@ -60,6 +60,9 @@ public class Renderer
 
         shader.bind();
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        GL11.glDepthMask(true);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         int screenX = (int) camera.getPosition().x / (scale);
         int screenY = (int) camera.getPosition().y / (scale);
@@ -83,6 +86,9 @@ public class Renderer
         }
 
         Automania.getInstance().getGame().getPlayer().render(shader, camera);
+
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glDepthMask(true);
 
         vao.unbind();
     }

@@ -11,6 +11,9 @@ public class TileRenderer<T extends Tile>
 {
     private T tile;
     private Texture texture;
+    private Texture texture_left;
+    private Texture texture_right;
+    private Texture texture_both;
 
     public TileRenderer(T tile)
     {
@@ -18,6 +21,9 @@ public class TileRenderer<T extends Tile>
         if (tile.isVisible())
         {
             texture = new Texture("src//main/resources/textures/" + tile.getRegistryName() + ".png");
+            texture_left = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_left.png");
+            texture_right = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_right.png");
+            texture_both = new Texture("src//main/resources/textures/" + tile.getRegistryName() + "_both.png");
         }
     }
 
@@ -25,7 +31,36 @@ public class TileRenderer<T extends Tile>
     {
         if (tile.isVisible())
         {
-            texture.bind(0);
+            Texture tex = texture;
+
+            Tile left = world.getTile(x - 1, y);
+            Tile right = world.getTile(x + 1, y);
+
+            boolean flagLeft = false;
+            boolean flagRight = false;
+            if (left == null || !left.isVisible())
+            {
+                if (texture_left.isValidTexture())
+                {
+                    tex = texture_left;
+                    flagLeft = true;
+                }
+            }
+
+            if (right == null || !right.isVisible())
+            {
+                if (texture_right.isValidTexture())
+                {
+                    tex = texture_right;
+                    flagRight = true;
+                }
+            }
+
+            if (flagRight && flagLeft)
+            {
+                tex = texture_both;
+            }
+            tex.bind(0);
 
             Matrix4f tile_pos = new Matrix4f().translate(x, y, 0);
             Matrix4f target = new Matrix4f();

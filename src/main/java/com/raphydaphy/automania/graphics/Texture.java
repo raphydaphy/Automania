@@ -16,6 +16,8 @@ public class Texture
     private int width;
     private int height;
 
+    private boolean valid;
+
     public Texture(String file)
     {
         ByteBuffer image;
@@ -28,8 +30,13 @@ public class Texture
             image = STBImage.stbi_load(file, w, h, comp, 4);
             if (image == null)
             {
+                valid = false;
                 System.err.println("Failed to load texture " + file);
                 image = STBImage.stbi_load(MISSING_TEXTURE, w, h, comp, 4);
+            }
+            else
+            {
+                valid = true;
             }
 
             width = w.get();
@@ -60,5 +67,10 @@ public class Texture
     public void delete()
     {
         GL11.glDeleteTextures(id);
+    }
+
+    public boolean isValidTexture()
+    {
+        return valid;
     }
 }

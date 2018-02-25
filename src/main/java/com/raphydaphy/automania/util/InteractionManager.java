@@ -5,6 +5,7 @@ import main.java.com.raphydaphy.automania.core.Window;
 import main.java.com.raphydaphy.automania.entity.Player;
 import main.java.com.raphydaphy.automania.graphics.Camera;
 import main.java.com.raphydaphy.automania.graphics.Renderer;
+import main.java.com.raphydaphy.automania.init.GameTiles;
 import main.java.com.raphydaphy.automania.tile.Tile;
 import main.java.com.raphydaphy.automania.world.World;
 import org.joml.Vector3f;
@@ -34,14 +35,19 @@ public class InteractionManager
             int worldX = (int) Math.floor((mouseX - (window.getWidth() / 2) - camera.getPosition().x) / scale);
             int worldY = (int) -(Math.ceil((mouseY - (window.getHeight() / 2) + camera.getPosition().y) / scale));
 
-            if (Automania.getInstance().getGame().getWorld().getTile(worldX, worldY) != null)
+            World world = Automania.getInstance().getGame().getWorld();
+
+            Tile existingTile = world.getTile(worldX, worldY);
+            if (existingTile != null && ((button == 0 && existingTile != GameTiles.AIR) || (button != 0 && existingTile == GameTiles.AIR)))
             {
-                Automania.getInstance().getGame().getWorld().setTile(Tile.REGISTRY.get(button), worldX, worldY);
+                world.setTile(GameTiles.AIR, worldX, worldY);
+                existingTile.onRemoved(world, worldX, worldY);
+                Tile.REGISTRY.get(button).doPlace(world, worldX, worldY);
             }
         }
     }
 
-    public InteractionManager update(Window window, float delta, World world, Player player, Renderer renderer)
+    public void update(Window window, float delta, World world, Player player, Renderer renderer)
     {
         Camera camera = renderer.getCamera();
 
@@ -86,8 +92,43 @@ public class InteractionManager
             }
         }
 
-        camera.getPosition().set(player.getTransform().pos.mul(-renderer.getScale(), new Vector3f()));
+        if (window.isKeyDown(GLFW.GLFW_KEY_SPACE) && player.onGround(world))
+        {
+            if (player.lastOnGround == player.fallTime && player.onGround(world))
+            {
+                player.lastOnGround = GLFW.glfwGetTime();
+                player.motionY += 120 * delta;
 
-        return this;
+                System.out.println("my " + player.motionY);
+            }
+        }
+
+        if (player.lastOnGround != player.fallTime || !player.onGround(world))
+        {
+            boolean doneFalling = false;
+            player.fallTime = GLFW.glfwGetTime() - player.lastOnGround;
+
+            float addY = (player.motionY * (float) player.fallTime) * delta;
+            if (!player.collides(world, 0, addY))
+            {
+                player.getTransform().pos.add(0, addY, 0);
+                player.motionY -= 3f * delta;
+            } else
+            {
+                player.getTransform().pos.add(0, (float) Math.floor(player.getTransform().pos.y) - player.getTransform().pos.y + 0.5f, 0);
+                doneFalling = true;
+            }
+            if (doneFalling || player.onGround(world))
+            {
+                player.fallTime = player.lastOnGround;
+            }
+        } else
+        {
+            player.motionY = 0;
+            player.lastOnGround = GLFW.glfwGetTime();
+            player.fallTime = player.lastOnGround;
+        }
+
+        camera.getPosition().set(player.getTransform().pos.mul(-renderer.getScale(), new Vector3f()));
     }
 }

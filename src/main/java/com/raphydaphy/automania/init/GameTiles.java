@@ -1,6 +1,8 @@
 package main.java.com.raphydaphy.automania.init;
 
 import main.java.com.raphydaphy.automania.tile.Tile;
+import main.java.com.raphydaphy.automania.tile.TileDirt;
+import main.java.com.raphydaphy.automania.tile.TileGrass;
 
 public class GameTiles
 {
@@ -12,8 +14,8 @@ public class GameTiles
     public static void init()
     {
         AIR = new Tile("air").setVisible(false).register();
-        GRASS = new Tile("grass").register();
-        DIRT = new Tile("dirt").register();
+        GRASS = new TileGrass().register();
+        DIRT = new TileDirt().register();
         STONE = new Tile("stone").register();
     }
 }

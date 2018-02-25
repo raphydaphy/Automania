@@ -15,6 +15,10 @@ public class Player
     private Model model;
     private Texture texture;
 
+    public float motionY;
+    public double lastOnGround;
+    public double fallTime;
+
     private Transform transform;
     private AABB bounds;
 
@@ -31,6 +35,8 @@ public class Player
         transform.scale = new Vector3f(renderer.getScale(), renderer.getScale(), 1);
 
         bounds = new AABB(-0.5f, -0.5f, 0.5f, 0.5f);
+
+        motionY = 0;
         return this;
     }
 
@@ -73,6 +79,37 @@ public class Player
                         AABB playerBox = this.bounds.add(transform.pos.x + moveX, transform.pos.y + moveY, new AABB());
 
                         if (box.intersects(playerBox))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean onGround(World world)
+    {
+        for (int x = 0; x < 5; x++)
+        {
+            for (int y = 0; y < 2; y++)
+            {
+                int posX = (int) Math.floor(transform.pos.x + x - 2);
+                int posY = (int) Math.floor(transform.pos.y + y - 2);
+
+                Tile tile = world.getTile((int) Math.floor(posX), (int) Math.floor(posY));
+
+                if (tile != null)
+                {
+                    AABB bounds = tile.getBounds(world,posX, posY);
+
+                    if (bounds != null)
+                    {
+                        AABB box = bounds.add(posX, posY, new AABB());
+                        AABB playerBox = this.bounds.add(transform.pos.x, transform.pos.y, new AABB());
+
+                        if (box.touches(playerBox) && !box.intersects(playerBox))
                         {
                             return true;
                         }
