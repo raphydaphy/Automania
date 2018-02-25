@@ -1,6 +1,7 @@
 package main.java.com.raphydaphy.automania.core;
 
 import main.java.com.raphydaphy.automania.graphics.Renderer;
+import main.java.com.raphydaphy.automania.util.InteractionManager;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -57,7 +58,7 @@ public class Window
         return this;
     }
 
-    public Window setCallbacks(Renderer renderer)
+    public Window setCallbacks(InteractionManager manager)
     {
         GLFW.glfwSetWindowSizeCallback(window, (argWindow, argWidth, argHeight) ->
         {
@@ -84,7 +85,7 @@ public class Window
         {
             if (argAction == GLFW.GLFW_RELEASE)
             {
-                renderer.processMouseClick(this, argWindow, argButton, argAction, argMods);
+                manager.processMouseClick(this, argWindow, argButton, argAction, argMods);
             }
         });
 

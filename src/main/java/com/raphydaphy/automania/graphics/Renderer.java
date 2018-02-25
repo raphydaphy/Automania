@@ -1,8 +1,10 @@
 package main.java.com.raphydaphy.automania.graphics;
 
+import main.java.com.raphydaphy.automania.Automania;
 import main.java.com.raphydaphy.automania.core.Window;
 import main.java.com.raphydaphy.automania.init.GameTiles;
 import main.java.com.raphydaphy.automania.tile.Tile;
+import main.java.com.raphydaphy.automania.util.VertexArray;
 import main.java.com.raphydaphy.automania.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -17,7 +19,6 @@ public class Renderer
     private VertexArray vao;
     private Shader shader;
     private Camera camera;
-    private World world;
     private Matrix4f view;
     private Model square;
 
@@ -39,13 +40,13 @@ public class Renderer
 
         GameTiles.init();
 
-        world = new World();
-
         view = new Matrix4f().setTranslation(new Vector3f(0)).scale(scale);
 
-        square = new Model(new float[]{-0.5f, 0.5f, 0, 0.5f, 0.5f, 0, 0.5f, -0.5f, 0, -0.5f, -0.5f, 0},
+        square = new Model(new float[]{0, 1, 0,
+                1, 1, 0,
+                1, 0, 0,
+                0, 0, 0},
                 new float[]{0, 0, 1, 0, 1, 1, 0, 1}, 0, 1, 2, 2, 3, 0);
-
 
 
         vao.unbind();
@@ -62,6 +63,8 @@ public class Renderer
 
         int screenX = (int) camera.getPosition().x / (scale);
         int screenY = (int) camera.getPosition().y / (scale);
+
+        World world = Automania.getInstance().getGame().getWorld();
 
         for (int i = 0; i < viewX; i++)
         {
@@ -91,27 +94,6 @@ public class Renderer
         square.delete();
         vao.delete();
         shader.delete();
-    }
-
-    public void processMouseClick(Window window, long windowID, int button, int action, int mods)
-    {
-        if (button < Tile.REGISTRY.size())
-        {
-            DoubleBuffer posX = BufferUtils.createDoubleBuffer(1);
-            DoubleBuffer posY = BufferUtils.createDoubleBuffer(1);
-            GLFW.glfwGetCursorPos(windowID, posX, posY);
-
-            int mouseX = (int) posX.get();
-            int mouseY = (int) posY.get();
-
-            int worldX = Math.round((mouseX - (window.getWidth() / 2) - camera.getPosition().x) / scale);
-            int worldY = -(Math.round((mouseY - (window.getHeight() / 2) + camera.getPosition().y) / scale));
-
-            if (world.getTile(worldX, worldY) != null)
-            {
-                world.setTile(Tile.REGISTRY.get(button), worldX, worldY);
-            }
-        }
     }
 
     public void update(Window window)
@@ -148,5 +130,15 @@ public class Renderer
     {
         viewX = (window.getWidth() / scale) + 4;
         viewY = (window.getHeight() / scale) + 4;
+    }
+
+    public Camera getCamera()
+    {
+        return camera;
+    }
+
+    public int getScale()
+    {
+        return scale;
     }
 }

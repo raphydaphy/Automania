@@ -1,11 +1,15 @@
 package main.java.com.raphydaphy.automania.tile;
 
+import main.java.com.raphydaphy.automania.util.AABB;
+import main.java.com.raphydaphy.automania.world.World;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Tile
 {
     public static final List<Tile> REGISTRY = new ArrayList<>();
+    public static final AABB TILE_AABB = new AABB(0, 0, 1, 1);
 
     private String registryName;
     private String unlocalizedName;
@@ -72,5 +76,10 @@ public class Tile
     public TileRenderer<Tile> getRenderer()
     {
         return renderer;
+    }
+
+    public AABB getBounds(World world, int x, int y)
+    {
+        return TILE_AABB;
     }
 }

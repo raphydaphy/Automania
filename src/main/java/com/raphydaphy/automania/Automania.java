@@ -1,8 +1,8 @@
 package main.java.com.raphydaphy.automania;
 
+import main.java.com.raphydaphy.automania.core.Game;
 import main.java.com.raphydaphy.automania.core.Timer;
 import main.java.com.raphydaphy.automania.core.Window;
-import main.java.com.raphydaphy.automania.graphics.Renderer;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -11,14 +11,17 @@ import org.lwjgl.opengl.GL11;
 
 public class Automania
 {
+    private static Automania INSTANCE;
+
     private Window window;
     private Timer timer;
 
-    private Renderer renderer;
+    private Game game;
 
     public static void main(String[] args)
     {
-        new Automania().run();
+        INSTANCE = new Automania();
+        INSTANCE.run();
     }
 
     public void run()
@@ -44,9 +47,7 @@ public class Automania
 
         GL.createCapabilities();
 
-        renderer = new Renderer().init(window);
-
-        window.setCallbacks(renderer);
+        game = new Game().init(window);
     }
 
     public void loop()
@@ -82,22 +83,32 @@ public class Automania
 
     public void update(float delta)
     {
-        renderer.update(window);
+        game.update(window, delta);
     }
 
     public void render(float alpha)
     {
         window.update();
-        renderer.render(alpha);
+        game.render(alpha);
         window.swapBuffers();
     }
 
     public void cleanup()
     {
-        renderer.cleanup();
+        game.cleanup();
         window.destroy();
 
         GLFW.glfwTerminate();
         GLFW.glfwSetErrorCallback(null).free();
+    }
+
+    public Game getGame()
+    {
+        return game;
+    }
+
+    public static Automania getInstance()
+    {
+        return INSTANCE;
     }
 }

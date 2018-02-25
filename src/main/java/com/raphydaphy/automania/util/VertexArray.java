@@ -1,4 +1,4 @@
-package main.java.com.raphydaphy.automania.graphics;
+package main.java.com.raphydaphy.automania.util;
 
 import org.lwjgl.opengl.GL30;
 

@@ -1,5 +1,6 @@
 package main.java.com.raphydaphy.automania.graphics;
 
+import main.java.com.raphydaphy.automania.util.VertexBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
