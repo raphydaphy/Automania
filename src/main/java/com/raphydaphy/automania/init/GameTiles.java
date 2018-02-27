@@ -13,7 +13,7 @@ public class GameTiles
 
     public static void init()
     {
-        AIR = new Tile("air").setVisible(false).register();
+        AIR = new Tile("air").setVisible(false).setHasGravity(false).register();
         GRASS = new TileGrass().register();
         DIRT = new TileDirt().register();
         STONE = new Tile("stone").register();

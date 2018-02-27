@@ -14,6 +14,7 @@ public class TileDirt extends Tile
     @Override
     public void onAdded(World world, int x, int y)
     {
+        super.onAdded(world, x, y);
         Tile above = world.getTile(x, y + 1);
 
         if (above == null || !above.isVisible())
@@ -25,6 +26,7 @@ public class TileDirt extends Tile
     @Override
     public void onChangedAround(World world, int x, int y, int changedX, int changedY)
     {
+        super.onChangedAround(world, x, y, changedX, changedY);
         int yDist = changedY - y;
         Tile changed = world.getTile(changedX, changedY);
 
