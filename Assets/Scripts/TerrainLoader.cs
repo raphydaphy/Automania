@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TerrainLoader : MonoBehaviour
 {
+    private const float scale = 5f;
+    private const float MinMovementForUpdate = 25f;
+    private const float SqrMinMovementForUpdate = MinMovementForUpdate * MinMovementForUpdate;
+    
     public LODInfo[] DetailLevels;
     public static float MaxView = 450;
     
@@ -11,13 +15,15 @@ public class TerrainLoader : MonoBehaviour
     public Material MeshMaterial;
     
     public static Vector2 ViewPosition;
+    private Vector2 OldViewPosition;
+    
     public static MapGenerator Generator;
     
     private int _chunkSize;
     private int _chunksVisible;
     
     private Dictionary<Vector2, TerrainChunk> _chunkDictionary = new Dictionary<Vector2, TerrainChunk>();
-    private List<TerrainChunk> _lastVisibleChunks = new List<TerrainChunk>();
+    private static List<TerrainChunk> _lastVisibleChunks = new List<TerrainChunk>();
     private void Start()
     {
         Generator = FindObjectOfType<MapGenerator>();
@@ -25,12 +31,19 @@ public class TerrainLoader : MonoBehaviour
         MaxView = DetailLevels[DetailLevels.Length - 1].VisibleDistanceThreshold;
         _chunkSize = MapGenerator.ChunkSize - 1;
         _chunksVisible = Mathf.RoundToInt(MaxView / _chunkSize);
+        
+        UpdateVisibleChunks();
     }
 
     private void Update()
     {
-        ViewPosition = new Vector2(Viewer.position.x, Viewer.position.z);
-        UpdateVisibleChunks();
+        ViewPosition = new Vector2(Viewer.position.x, Viewer.position.z) / scale;
+
+        if ((OldViewPosition - ViewPosition).SqrMagnitude() > SqrMinMovementForUpdate)
+        {
+            OldViewPosition = ViewPosition;
+            UpdateVisibleChunks();
+        }
     }
 
     private void UpdateVisibleChunks()
@@ -54,10 +67,6 @@ public class TerrainLoader : MonoBehaviour
                 if (_chunkDictionary.ContainsKey(viewedChunkCoord))
                 {
                     _chunkDictionary[viewedChunkCoord].UpdateChunk();
-                    if (_chunkDictionary[viewedChunkCoord].IsVisible())
-                    {
-                        _lastVisibleChunks.Add(_chunkDictionary[viewedChunkCoord]);
-                    }
                 }
                 else
                 {
@@ -96,24 +105,31 @@ public class TerrainLoader : MonoBehaviour
             _filter = _meshObject.AddComponent<MeshFilter>();
             _renderer.material = material;
             
-            _meshObject.transform.position = pos3;
+            _meshObject.transform.position = pos3 * scale;
             _meshObject.transform.parent = parent;
+            _meshObject.transform.localScale = Vector3.one * scale;
             
             SetVisible(false);
             
             _detailMeshes = new LODMesh[_detailLevels.Length];
             for (var i = 0; i < _detailLevels.Length; i++)
             {
-                _detailMeshes[i] = new LODMesh(_detailLevels[i].LOD);
+                _detailMeshes[i] = new LODMesh(_detailLevels[i].LOD, UpdateChunk);
             }
             
-            Generator.RequestMapData(OnMapDataRecieved);
+            Generator.RequestMapData(_position, OnMapDataRecieved);
         }
 
         private void OnMapDataRecieved(MapData data)
         {
             _mapData = data;
             _mapDataRecieved = true;
+
+            var texture =
+                TextureGenerator.TextureFromColorMap(data.ColorMap, MapGenerator.ChunkSize, MapGenerator.ChunkSize);
+            _renderer.material.mainTexture = texture;
+            
+            UpdateChunk();
         }
 
         public void UpdateChunk()
@@ -152,6 +168,8 @@ public class TerrainLoader : MonoBehaviour
                             lodMesh.RequestMesh(_mapData);
                         }
                     }
+                    
+                    _lastVisibleChunks.Add(this);
                 }
                 SetVisible(visible);
             }
@@ -173,17 +191,21 @@ public class TerrainLoader : MonoBehaviour
         public Mesh Mesh;
         public bool HasRequested;
         public bool HasRecieved;
-        private int _lod;
-
-        public LODMesh(int lod)
+        private readonly int _lod;
+        private readonly Action _updateCallback;
+        
+        public LODMesh(int lod, Action updateCallback)
         {
             _lod = lod;
+            _updateCallback = updateCallback;
         }
 
         private void OnMeshDataRecieved(MeshData data)
         {
             Mesh = data.CreateMesh();
             HasRecieved = true;
+
+            _updateCallback();
         }
 
         public void RequestMesh(MapData data)
