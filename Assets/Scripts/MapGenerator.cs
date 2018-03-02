@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net.Mime;
 using System.Threading;
-using System.Xml;
-using UnityEditor;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -17,25 +13,14 @@ public class MapGenerator : MonoBehaviour
         FalloutMap
     };
 
-    public const int ChunkSize = 239;
+    public const int ChunkSize = 95;
+
+    public TerrainTypeData TerrainData;
+    public NoiseData NoiseData;
+    
     [Range(0, 6)]    
     public int EditorDetailLevel;
     
-    public float NoiseScale = 0.3f;
-
-    public int Octaves = 4;
-    [Range(0, 1)]
-    public float Persistance = 0.5f;
-    public float Lacunarity = 2;
-
-    public int Seed = 10;
-    public Vector2 Offset = new Vector2(0, 0);
-
-    public bool UseFalloff;
-    
-    public float MeshHeightMultiplier;
-    public AnimationCurve MeshHeightCurve;
-
     public bool AutoUpdate;
 
     public DrawMode Mode;
@@ -49,6 +34,14 @@ public class MapGenerator : MonoBehaviour
     private void Awake()
     {
         _falloffMap = FalloffGenerator.GenerateFalloff(ChunkSize);
+    }
+
+    private void OnValuesUpdated()
+    {
+        if (!Application.isPlaying)
+        {
+            DrawMapInEditor();
+        }
     }
     
     public void DrawMapInEditor()
@@ -66,7 +59,7 @@ public class MapGenerator : MonoBehaviour
                 display.DrawTexture(TextureGenerator.TextureFromColorMap(data.ColorMap, ChunkSize, ChunkSize));
                 break;
             case DrawMode.Mesh:
-                display.DrawMesh(MeshGenerator.GenerateTerrainMesh(data.HeightMap, MeshHeightMultiplier, MeshHeightCurve, EditorDetailLevel),
+                display.DrawMesh(MeshGenerator.GenerateTerrainMesh(data.HeightMap, TerrainData.MeshHeightMultiplier, TerrainData.MeshHeightCurve, EditorDetailLevel),
                     TextureGenerator.TextureFromColorMap(data.ColorMap, ChunkSize, ChunkSize));
                 break;
             case DrawMode.FalloutMap:
@@ -101,7 +94,7 @@ public class MapGenerator : MonoBehaviour
     private void MeshDataThread(MapData mapData, int lod, Action<MeshData> callback)
     {
         var meshData =
-            MeshGenerator.GenerateTerrainMesh(mapData.HeightMap, MeshHeightMultiplier, MeshHeightCurve, lod);
+            MeshGenerator.GenerateTerrainMesh(mapData.HeightMap, TerrainData.MeshHeightMultiplier, TerrainData.MeshHeightCurve, lod);
         lock (_meshDataQueue)
         {
             _meshDataQueue.Enqueue(new MapThreadInfo<MeshData>(callback, meshData));
@@ -131,8 +124,8 @@ public class MapGenerator : MonoBehaviour
 
     private MapData GenerateMapData(Vector2 center)
     {
-        var noiseMap = Noise.GenerateNoiseMap(ChunkSize + 2, ChunkSize + 2, Seed, NoiseScale, Octaves, Persistance, Lacunarity,
-            center + Offset);
+        var noiseMap = Noise.GenerateNoiseMap(ChunkSize + 2, ChunkSize + 2, NoiseData.Seed, NoiseData.NoiseScale, NoiseData.Octaves, NoiseData.Persistance, NoiseData.Lacunarity,
+            center + NoiseData.Offset);
 
         var colorMap = new Color[ChunkSize * ChunkSize];
 
@@ -140,7 +133,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (var x = 0; x < ChunkSize; x++) 
             {
-                if (UseFalloff)
+                if (TerrainData.UseFalloff)
                 {
                     noiseMap[x, y] = Mathf.Clamp01(noiseMap[x, y] - _falloffMap[x, y]);
                 }
@@ -165,16 +158,17 @@ public class MapGenerator : MonoBehaviour
 
     private void OnValidate()
     {
-        if (Octaves < 0)
+        if (TerrainData != null)
         {
-            Octaves = 0;
+            TerrainData.OnValuesUpdated -= OnValuesUpdated;
+            TerrainData.OnValuesUpdated += OnValuesUpdated;
         }
 
-        if (Lacunarity < 1)
+        if (NoiseData != null)
         {
-            Lacunarity = 1;
+            NoiseData.OnValuesUpdated -= OnValuesUpdated;
+            NoiseData.OnValuesUpdated += OnValuesUpdated;
         }
-        
         _falloffMap = FalloffGenerator.GenerateFalloff(ChunkSize);
     }
 

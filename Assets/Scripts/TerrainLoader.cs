@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TerrainLoader : MonoBehaviour
 {
-    private const float scale = 2f;
+    
     private const float MinMovementForUpdate = 25f;
     private const float SqrMinMovementForUpdate = MinMovementForUpdate * MinMovementForUpdate;
     
@@ -37,7 +37,7 @@ public class TerrainLoader : MonoBehaviour
 
     private void Update()
     {
-        ViewPosition = new Vector2(Viewer.position.x, Viewer.position.z) / scale;
+        ViewPosition = new Vector2(Viewer.position.x, Viewer.position.z) / Generator.TerrainData.UniformScale;
 
         if ((OldViewPosition - ViewPosition).SqrMagnitude() > SqrMinMovementForUpdate)
         {
@@ -108,9 +108,9 @@ public class TerrainLoader : MonoBehaviour
             _collider = _meshObject.AddComponent<MeshCollider>();
             _renderer.material = material;
             
-            _meshObject.transform.position = pos3 * scale;
+            _meshObject.transform.position = pos3 * Generator.TerrainData.UniformScale;
             _meshObject.transform.parent = parent;
-            _meshObject.transform.localScale = Vector3.one * scale;
+            _meshObject.transform.localScale = Vector3.one * Generator.TerrainData.UniformScale;
             
             SetVisible(false);
             
