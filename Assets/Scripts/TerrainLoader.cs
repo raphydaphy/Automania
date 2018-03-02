@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TerrainLoader : MonoBehaviour
 {
-    private const float scale = 5f;
+    private const float scale = 2f;
     private const float MinMovementForUpdate = 25f;
     private const float SqrMinMovementForUpdate = MinMovementForUpdate * MinMovementForUpdate;
     
@@ -84,9 +84,11 @@ public class TerrainLoader : MonoBehaviour
 
         private MeshRenderer _renderer;
         private MeshFilter _filter;
+        private MeshCollider _collider;
 
         private LODInfo[] _detailLevels;
         private LODMesh[] _detailMeshes;
+        private LODMesh _collisionLODMesh;
 
         private MapData _mapData;
         private bool _mapDataRecieved;
@@ -103,6 +105,7 @@ public class TerrainLoader : MonoBehaviour
             _meshObject = new GameObject("Terrain Chunk @ " + coord.x + ", " + coord.y);
             _renderer = _meshObject.AddComponent<MeshRenderer>();
             _filter = _meshObject.AddComponent<MeshFilter>();
+            _collider = _meshObject.AddComponent<MeshCollider>();
             _renderer.material = material;
             
             _meshObject.transform.position = pos3 * scale;
@@ -115,6 +118,10 @@ public class TerrainLoader : MonoBehaviour
             for (var i = 0; i < _detailLevels.Length; i++)
             {
                 _detailMeshes[i] = new LODMesh(_detailLevels[i].LOD, UpdateChunk);
+                if (_detailLevels[i].useForCollider)
+                {
+                    _collisionLODMesh = _detailMeshes[i];
+                }
             }
             
             Generator.RequestMapData(_position, OnMapDataRecieved);
@@ -166,6 +173,18 @@ public class TerrainLoader : MonoBehaviour
                         else if (!lodMesh.HasRequested)
                         {
                             lodMesh.RequestMesh(_mapData);
+                        }
+                    }
+
+                    if (lodIndex == 0)
+                    {
+                        if (_collisionLODMesh.HasRecieved)
+                        {
+                            _collider.sharedMesh = _collisionLODMesh.Mesh;
+                        }
+                        else if (!_collisionLODMesh.HasRequested)
+                        {
+                            _collisionLODMesh.RequestMesh(_mapData);
                         }
                     }
                     
@@ -220,5 +239,6 @@ public class TerrainLoader : MonoBehaviour
     {
         public int LOD;
         public float VisibleDistanceThreshold;
+        public bool useForCollider;
     }
 }

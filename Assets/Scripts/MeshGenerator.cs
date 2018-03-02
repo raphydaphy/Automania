@@ -67,6 +67,8 @@ public static class MeshGenerator
                 vertexIndex++;
             }
         }
+        
+        data.BakeNormals();
 
         return data;
     }
@@ -77,6 +79,7 @@ public class MeshData
     private Vector3[] _vertices;
     private int[] _triangles;
     private Vector2[] _uvs;
+    private Vector3[] _bakedNormals;
 
     private Vector3[] _borderVertices;
     private int[] _borderTriangles;
@@ -193,6 +196,28 @@ public class MeshData
         return Vector3.Cross(sideAB, sideAC).normalized;
     }
 
+    public void BakeNormals()
+    {
+        //FlatShading();
+        _bakedNormals = CalculateNormals();
+    }
+
+    private void FlatShading()
+    {
+        var flatShadedVertices = new Vector3[_triangles.Length];
+        var flatShadedUvs = new Vector2[_triangles.Length];
+
+        for (var i = 0; i < _triangles.Length; i++)
+        {
+            flatShadedVertices[i] = _vertices[_triangles[i]];
+            flatShadedUvs = _uvs[_triangles[i]]
+            _triangles[i] = i;
+        }
+
+        _vertices = flatShadedVertices;
+        _uvs = flatShadedUvs;
+    }
+
     public Mesh CreateMesh()
     {
         var mesh = new Mesh();
@@ -201,7 +226,7 @@ public class MeshData
         mesh.triangles = _triangles;
         mesh.uv = _uvs;
 
-        mesh.normals = CalculateNormals();
+        mesh.normals = _bakedNormals;
 
         return mesh;
     }
