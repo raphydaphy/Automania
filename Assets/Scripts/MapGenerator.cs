@@ -124,7 +124,7 @@ public class MapGenerator : MonoBehaviour
 
     private MapData GenerateMapData(Vector2 center)
     {
-        var noiseMap = Noise.GenerateNoiseMap(ChunkSize + 2, ChunkSize + 2, NoiseData.Seed, NoiseData.NoiseScale, NoiseData.Octaves, NoiseData.Persistance, NoiseData.Lacunarity,
+        var noiseMap = Noise.GenerateNoiseMap(ChunkSize, ChunkSize, NoiseData.Seed, NoiseData.NoiseScale, NoiseData.Octaves, NoiseData.Persistance, NoiseData.Lacunarity,
             center + NoiseData.Offset);
 
         var colorMap = new Color[ChunkSize * ChunkSize];
