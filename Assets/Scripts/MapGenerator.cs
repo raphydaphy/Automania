@@ -24,7 +24,6 @@ public class MapGenerator : MonoBehaviour
     public bool AutoUpdate;
 
     public DrawMode Mode;
-    public TerrainType[] Regions;
 
     private float[,] _falloffMap;
     
@@ -139,11 +138,11 @@ public class MapGenerator : MonoBehaviour
                 }
                 var currentHeight = noiseMap[x, y];
 
-                for (var i = 0; i < Regions.Length; i++)
+                for (var i = 0; i < TerrainData.Regions.Length; i++)
                 {
-                    if (currentHeight >= Regions[i].Height)
+                    if (currentHeight >= TerrainData.Regions[i].Height)
                     {
-                        colorMap[y * ChunkSize + x] = Regions[i].Color;
+                        colorMap[y * ChunkSize + x] = TerrainData.Regions[i].Color;
                     }
                     else
                     {

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7690bc20a3f0f489eb3e853d139da0f6, type: 3}
+  m_Name: PlainsTerrain
+  m_EditorClassIdentifier: 
+  AutoUpdate: 1
+  UniformScale: 2
+  UseFalloff: 0
+  MeshHeightMultiplier: 13
+  MeshHeightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 0.30105767
+      value: 0.14390486
+      inSlope: 0.0662513
+      outSlope: 0.0662513
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  Regions:
+  - Name: Valley
+    Height: 0
+    Color: {r: 0.22967128, g: 0.86764705, b: 0.2619739, a: 1}
+  - Name: Forest
+    Height: 0.3
+    Color: {r: 0.18039216, g: 0.8000001, b: 0.21176472, a: 1}
+  - Name: Forest
+    Height: 0.55
+    Color: {r: 0.15294118, g: 0.68235296, b: 0.18039216, a: 1}

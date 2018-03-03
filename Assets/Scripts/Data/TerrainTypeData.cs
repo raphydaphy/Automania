@@ -8,4 +8,6 @@ public class TerrainTypeData : UpdatableData
     
 	public float MeshHeightMultiplier;
 	public AnimationCurve MeshHeightCurve;
+	
+	public TerrainType[] Regions;
 }

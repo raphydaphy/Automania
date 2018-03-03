@@ -9,37 +9,43 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7690bc20a3f0f489eb3e853d139da0f6, type: 3}
-  m_Name: DefaultTerrain
+  m_Name: IslandTerrain
   m_EditorClassIdentifier: 
   AutoUpdate: 1
   UniformScale: 2
-  UseFalloff: 0
-  MeshHeightMultiplier: 30
+  UseFalloff: 1
+  MeshHeightMultiplier: 8
   MeshHeightCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 2
       time: 0
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: -0
+      outSlope: -0
       tangentMode: 0
     - serializedVersion: 2
-      time: 1
-      value: 1
+      time: 0.44966805
+      value: 0.003077209
+      inSlope: -0.0030298356
+      outSlope: -0.0030298356
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1.1054688
+      value: 1.2438583
       inSlope: 2
       outSlope: 2
       tangentMode: 0
-    m_PreInfinity: 2
+    m_PreInfinity: 1
     m_PostInfinity: 2
     m_RotationOrder: 0
   Regions:
   - Name: Deep Ocean
     Height: 0
-    Color: {r: 0.7794118, g: 0.70975846, b: 0.32666522, a: 1}
+    Color: {r: 0.16078432, g: 0.5019608, b: 0.7254902, a: 1}
   - Name: Shallow Ocean
-    Height: 0.3
-    Color: {r: 0.83823526, g: 0.7690341, b: 0.38213667, a: 1}
+    Height: 0.27
+    Color: {r: 0.20392157, g: 0.59607846, b: 0.85882354, a: 1}
   - Name: Sand
     Height: 0.35
     Color: {r: 0.9264706, g: 0.83965915, b: 0.49048442, a: 1}
@@ -49,12 +55,3 @@ MonoBehaviour:
   - Name: Forest
     Height: 0.55
     Color: {r: 0.15294117, g: 0.68235296, b: 0.17931025, a: 1}
-  - Name: Stone
-    Height: 0.65
-    Color: {r: 0.29411763, g: 0.2789792, b: 0.2789792, a: 0}
-  - Name: Boulders
-    Height: 0.8
-    Color: {r: 0.22794116, g: 0.22794116, b: 0.22794116, a: 0}
-  - Name: Snow
-    Height: 0.9
-    Color: {r: 0.9254902, g: 0.9411765, b: 0.94509804, a: 1}

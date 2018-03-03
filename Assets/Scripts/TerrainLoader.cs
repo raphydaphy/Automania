@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class TerrainLoader : MonoBehaviour
@@ -44,6 +45,24 @@ public class TerrainLoader : MonoBehaviour
             OldViewPosition = ViewPosition;
             UpdateVisibleChunks();
         }
+    }
+
+    public TerrainChunk GetChunk(float worldX, float worldY)
+    {
+        worldX /= 188;
+        worldY /= 188;
+
+        var pos = new Vector2(worldX, worldY);
+        
+        print("Looking for chunk at " + pos.x + ", " + pos.y);
+
+        if (_chunkDictionary.ContainsKey(pos))
+        {
+            var chunk = _chunkDictionary[pos];
+            return chunk;
+        }
+
+        return null;
     }
 
     private void UpdateVisibleChunks()
@@ -137,6 +156,21 @@ public class TerrainLoader : MonoBehaviour
             _renderer.material.mainTexture = texture;
             
             UpdateChunk();
+        }
+
+        public List<Vector3> GetVertices()
+        {
+            return _filter.mesh.vertices.ToList();
+        }
+
+        public List<Vector3> GetNormals()
+        {
+            return _filter.mesh.normals.ToList();
+        }
+
+        public void SetVertices(List<Vector3> vertices)
+        {
+            _filter.mesh.SetVertices(vertices);
         }
 
         public void UpdateChunk()
