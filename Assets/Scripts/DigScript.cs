@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using NUnit.Framework.Constraints;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class DigScript : MonoBehaviour
 {
@@ -17,39 +19,66 @@ public class DigScript : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
-                var pos = hit.transform.position;
-
-                var chunk = World.GetChunk(pos.x, pos.z);
-
-                if (chunk != null && chunk.IsVisible())
+                if (Vector3.Distance(gameObject.transform.position, hit.point) < 25)
                 {
 
-                    var vertices = chunk.GetVertices();
-                    var normals = chunk.GetNormals();
+                    var pos = hit.transform.position;
 
-                    var chunkHitX = Mathf.RoundToInt(Mathf.Abs((Mathf.RoundToInt(hit.point.x) / 188f + 0.5f) * 188f));
-                    var chunkHitY =Mathf.RoundToInt( Mathf.Abs(Mathf.Abs((Mathf.RoundToInt(hit.point.z) / 188f + 0.5f) * 180f) - 188));
-                    
-                    print("Hit chunk @ " + pos.x + ", " + pos.y + " with inner coord " + chunkHitX + ", " + chunkHitY);
-                    print(vertices.Count);
+                    var chunk = World.GetChunk(pos.x, pos.z);
 
-                    for (var y = -2; y < 2; y++)
+                    if (chunk != null && chunk.IsVisible())
                     {
-                        for (var x = -2; x < 2; x++)
+                        var chunkHitX =
+                            Mathf.RoundToInt(Mathf.Abs((Mathf.RoundToInt(hit.point.x) / ((MapGenerator.ChunkSize - 2f) * 2f) + 0.5f) * ((MapGenerator.ChunkSize - 2f) * 2f)));
+                        var chunkHitY =
+                            Mathf.RoundToInt(Mathf.Abs((Mathf.RoundToInt(hit.point.z) / ((MapGenerator.ChunkSize - 2f) * 2f) + 0.5f) * ((MapGenerator.ChunkSize - 2f) * 2f)));
+
+                        chunkHitX = (chunkHitX / 2) % MapGenerator.ChunkSize;
+                        chunkHitY = (chunkHitY / 2) % MapGenerator.ChunkSize;
+                        
+                        for (var i = -2; i < 2; i++)
                         {
-                            for (var i = 0; i < 3; i++)
+                            for (var j = -2; j < 2; j++)
                             {
-                                var index = ((chunkHitY + y) * (MapGenerator.ChunkSize - 2) + (chunkHitX + 2)) * (i + 1);
-                                vertices[index] += Vector3.down * 5 * Time.deltaTime;
+                                var x = chunkHitX + i;
+                                var z = Mathf.Abs(chunkHitY - MapGenerator.ChunkSize) + j;
+
+                                if (x > 0 && x < MapGenerator.ChunkSize && z > 0 && z < MapGenerator.ChunkSize)
+                                {
+                                    var curHeight = chunk._mapData.HeightMap[x, z];
+                                    
+                                    for (var region = 0; region < MapGenerator.instance.TerrainData.Regions.Length; region++)
+                                    {
+                                        if (curHeight >= MapGenerator.instance.TerrainData.Regions[region].Height)
+                                        {
+                                            chunk._mapData.ColorMap[z * MapGenerator.ChunkSize + x] = MapGenerator.instance.TerrainData.Regions[region].Color;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    chunk._mapData.HeightMap[x, z] = Math.Min(curHeight,
+                                        curHeight - 0.03f + (Mathf.Abs(i) / 100f) + (Mathf.Abs(j) / 100f));
+                                }
                             }
                         }
+                        
+                        
+                        
+                        var mesh =
+                            MeshGenerator.GenerateTerrainMesh(chunk._mapData.HeightMap,
+                                MapGenerator.instance.TerrainData.MeshHeightMultiplier,
+                                MapGenerator.instance.TerrainData.MeshHeightCurve, 0).CreateMesh();
+                        
+                        var texture =
+                            TextureGenerator.TextureFromColorMap(chunk._mapData.ColorMap, MapGenerator.ChunkSize, MapGenerator.ChunkSize);
+                        
+                        hit.transform.gameObject.GetComponent<MeshRenderer>().sharedMaterial.mainTexture = texture;
+                        hit.transform.gameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
+                        hit.transform.gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
                     }
-                    
-                    
-                    
-                    
-                    
-                    chunk.SetVertices(vertices);
                 }
             }
         }

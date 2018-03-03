@@ -53,8 +53,6 @@ public class TerrainLoader : MonoBehaviour
         worldY /= 188;
 
         var pos = new Vector2(worldX, worldY);
-        
-        print("Looking for chunk at " + pos.x + ", " + pos.y);
 
         if (_chunkDictionary.ContainsKey(pos))
         {
@@ -105,11 +103,11 @@ public class TerrainLoader : MonoBehaviour
         private MeshFilter _filter;
         private MeshCollider _collider;
 
-        private LODInfo[] _detailLevels;
-        private LODMesh[] _detailMeshes;
+        public LODInfo[] _detailLevels;
+        public LODMesh[] _detailMeshes;
         private LODMesh _collisionLODMesh;
 
-        private MapData _mapData;
+        public MapData _mapData;
         private bool _mapDataRecieved;
         private int _previousLODIndex = -1;
         
@@ -239,12 +237,12 @@ public class TerrainLoader : MonoBehaviour
         }
     }
 
-    private class LODMesh
+    public class LODMesh
     {
         public Mesh Mesh;
         public bool HasRequested;
         public bool HasRecieved;
-        private readonly int _lod;
+        public readonly int _lod;
         private readonly Action _updateCallback;
         
         public LODMesh(int lod, Action updateCallback)
@@ -263,6 +261,7 @@ public class TerrainLoader : MonoBehaviour
 
         public void RequestMesh(MapData data)
         {
+            HasRecieved = false;
             HasRequested = true;
             Generator.RequestMeshData(data, _lod, OnMeshDataRecieved);
         }

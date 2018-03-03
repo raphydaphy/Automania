@@ -26,12 +26,15 @@ public class MapGenerator : MonoBehaviour
     public DrawMode Mode;
 
     private float[,] _falloffMap;
+
+    public static MapGenerator instance;
     
     private Queue<MapThreadInfo<MapData>> _mapDataQueue = new Queue<MapThreadInfo<MapData>>();
     private Queue<MapThreadInfo<MeshData>> _meshDataQueue = new Queue<MapThreadInfo<MeshData>>();
 
     private void Awake()
     {
+        instance = this;
         _falloffMap = FalloffGenerator.GenerateFalloff(ChunkSize);
     }
 
@@ -194,8 +197,8 @@ public struct TerrainType
 
 public struct MapData
 {
-    public readonly float[,] HeightMap;
-    public readonly Color[] ColorMap;
+    public float[,] HeightMap;
+    public Color[] ColorMap;
 
     public MapData(float[,] heightMap, Color[] colorMap)
     {
