@@ -156,19 +156,19 @@ public class TerrainLoader : MonoBehaviour
             UpdateChunk();
         }
 
-        public List<Vector3> GetVertices()
+        public Vector3[] GetVertices()
         {
-            return _filter.mesh.vertices.ToList();
+            return _filter.mesh.vertices;
         }
 
-        public List<Vector3> GetNormals()
+        public Vector3[] GetNormals()
         {
-            return _filter.mesh.normals.ToList();
+            return _filter.mesh.normals;
         }
 
-        public void SetVertices(List<Vector3> vertices)
+        public void SetVertices(Vector3[] vertices)
         {
-            _filter.mesh.SetVertices(vertices);
+            _filter.mesh.vertices = vertices;
         }
 
         public void UpdateChunk()

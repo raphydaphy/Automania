@@ -51,7 +51,7 @@ public static class MeshGenerator
             }
         }
         
-        data.ProcessMesh();
+        data.FlatShading();
 
         return data;
     }
@@ -90,13 +90,8 @@ public class MeshData
         _vertices[index] = position;
         _uvs[index] = uv;
     }
-
-    public void ProcessMesh()
-    {
-        FlatShading();
-    }
-
-    private void FlatShading()
+    
+    public void FlatShading()
     {
         var flatShadedVertices = new Vector3[_triangles.Length];
         var flatShadedUvs = new Vector2[_triangles.Length];
