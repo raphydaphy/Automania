@@ -12,6 +12,18 @@ public static class TextureGenerator
 		texture.Apply();
 		return texture;
 	}
+	
+	public static Texture3D TextureFrom3DColorMap(Color[] colorMap, int width, int height, int depth)
+	{
+		var texture = new Texture3D(width, height, depth, TextureFormat.ARGB32, false)
+		{
+			filterMode = FilterMode.Point,
+			wrapMode = TextureWrapMode.Clamp
+		};
+		texture.SetPixels(colorMap);
+		texture.Apply();
+		return texture;
+	}
 
 	public static Texture2D TextureFromHeightMap(float[,] heightMap)
 	{

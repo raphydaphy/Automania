@@ -61,8 +61,8 @@ public class MapGenerator : MonoBehaviour
                 display.DrawTexture(TextureGenerator.TextureFromColorMap(data.ColorMap, ChunkSize, ChunkSize));
                 break;
             case DrawMode.Mesh:
-                //display.DrawMesh(MeshGenerator.GenerateTerrainMesh(data.HeightMap, TerrainData.MeshHeightMultiplier, TerrainData.MeshHeightCurve, EditorDetailLevel),
-                //    TextureGenerator.TextureFromColorMap(data.ColorMap, ChunkSize, ChunkSize));
+                display.DrawMesh(MeshGenerator.GenerateTerrainMesh(data.HeightMap, TerrainData.MeshHeightMultiplier, TerrainData.MeshHeightCurve, EditorDetailLevel),
+                    TextureGenerator.TextureFromColorMap(data.ColorMap, ChunkSize, ChunkSize));
                 break;
             case DrawMode.FalloutMap:
                 display.DrawTexture(TextureGenerator.TextureFromHeightMap(FalloffGenerator.GenerateFalloff((ChunkSize))));

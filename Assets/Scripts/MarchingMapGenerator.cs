@@ -5,7 +5,7 @@ using UnityEngine;
 public class MarchingMapGenerator : MonoBehaviour 
 {
     // The size of each chunk, which can be split up again into multiple meshes after being generated
-    public const int ChunkSize = 32;
+    public const int ChunkSize = 64;
     
     // This number must be divisible by 3 since three vertices are needed to make up a triangle
     public const int VerticesPerMesh = 30000;
@@ -20,6 +20,7 @@ public class MarchingMapGenerator : MonoBehaviour
     public Vector2 Offset = new Vector2(0, 0);
 
     public Material MeshMaterial;
+    public TerrainTypeData Terrain;
 
     private List<GameObject> Meshes;
     
@@ -28,7 +29,7 @@ public class MarchingMapGenerator : MonoBehaviour
         instance = this;
     }
 
-    public void Start()
+    private void Start()
     {
         GenerateMeshes(GenerateMapData(Offset));
     }
@@ -44,16 +45,18 @@ public class MarchingMapGenerator : MonoBehaviour
         {
             for (var z = 0; z < ChunkSize; z++)
             {
-                var height = heightMap[x, z] * ChunkSize;
+                var height = heightMap[x, z];
+                
                 for (var y = 0; y < ChunkSize; y++)
                 {
-                    var fx = x / (ChunkSize - 1f);
-                    var fy = y / (ChunkSize - 1f);
-                    var fz = z / (ChunkSize - 1f);
+                    // 3D noise values, if we want to implement generation on more than two axes
+                    //var fx = x / (ChunkSize - 1f);
+                    //var fy = y / (ChunkSize - 1f);
+                    //var fz = z / (ChunkSize - 1f);
 
                     var id = x + y * ChunkSize + z * ChunkSize * ChunkSize;
                     
-                    if (y <= height)
+                    if (y >= Terrain.MeshHeightCurve.Evaluate(height) * Terrain.MeshHeightMultiplier)
                     {
                         voxelMap[id] = 1f;
                     }
@@ -61,11 +64,13 @@ public class MarchingMapGenerator : MonoBehaviour
                     {
                         voxelMap[id] = 0f;
                     }
+                    
+                    
                 }
             }
         }
         
-        return new MarchingMapData(voxelMap);
+        return new MarchingMapData(heightMap, voxelMap);
     }
 
     public void GenerateMeshes(MarchingMapData data)
@@ -79,60 +84,81 @@ public class MarchingMapGenerator : MonoBehaviour
         data.Generator.Generate(data.Voxels, ChunkSize, vertices, indices);
 
         // Calculate the number of meshes we will need to safely draw the vertices
-        var meshCount = vertices.Count / VerticesPerMesh + 1;
+        var numMeshes = vertices.Count / VerticesPerMesh + 1;
 
-        for (var i = 0; i < meshCount; i++)
+        for (var i = 0; i < numMeshes; i++)
         {
-            var splitVertices = new List<Vector3>();
+
+            var splitVerts = new List<Vector3>();
             var splitIndices = new List<int>();
 
-            for (var vertex = 0; vertex < VerticesPerMesh; vertex++)
+            for (int j = 0; j < VerticesPerMesh; j++)
             {
-                var index = i * VerticesPerMesh + vertex;
+                int idx = i * VerticesPerMesh + j;
 
-                if (index < vertices.Count)
+                if (idx < vertices.Count)
                 {
-                    splitVertices.Add(vertices[vertex]);
-                    splitIndices.Add(vertex);
+                    splitVerts.Add(vertices[idx]);
+                    splitIndices.Add(j);
                 }
             }
 
-            if (splitVertices.Count == 0)
-            {
-                continue;
-            }
+            if (splitVerts.Count == 0) continue;
 
             var splitMesh = new Mesh();
-            
-            splitMesh.SetVertices(splitVertices);
+            splitMesh.SetVertices(splitVerts);
             splitMesh.SetTriangles(splitIndices, 0);
-            
             splitMesh.RecalculateBounds();
             splitMesh.RecalculateNormals();
             
-            var meshObject = new GameObject("Sub-Mesh #" + i);
-            meshObject.transform.parent = transform;
-            var filter = meshObject.AddComponent<MeshFilter>();
-            var renderer = meshObject.AddComponent<MeshRenderer>();
+            var colors = new Color[splitVerts.Count];
 
-            renderer.sharedMaterial = MeshMaterial;
-            filter.sharedMesh = splitMesh;
+            for (var vert = 0; vert < Mathf.FloorToInt(splitVerts.Count / 3); vert++)
+            {
+                var height = data.HeightMap[Mathf.RoundToInt(splitVerts[vert * 3].x), Mathf.RoundToInt(splitVerts[vert * 3].z)];
+                for (var terrain = 0; terrain < Terrain.Regions.Length; terrain++)
+                {
+                    if (height >= Terrain.Regions[terrain].Height)
+                    {
+                        colors[vert * 3] = Terrain.Regions[terrain].Color;
+                        colors[vert * 3 + 1] = Terrain.Regions[terrain].Color;
+                        colors[vert * 3 + 2 ] = Terrain.Regions[terrain].Color;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
             
+
+            // assign the array of colors to the Mesh.
+            splitMesh.colors = colors;
+
+            var meshObject = new GameObject("Mesh #" + i);
+            meshObject.transform.parent = transform;
+            meshObject.AddComponent<MeshFilter>();
+            meshObject.AddComponent<MeshRenderer>();
+            meshObject.AddComponent<MeshCollider>();
+            meshObject.GetComponent<Renderer>().material = MeshMaterial;
+            meshObject.GetComponent<MeshFilter>().mesh = splitMesh;
+            meshObject.GetComponent<MeshCollider>().sharedMesh = splitMesh;
             meshObject.transform.localPosition = new Vector3(-ChunkSize / 2, -ChunkSize / 2, -ChunkSize / 2);
 
             Meshes.Add(meshObject);
         }
     }
-
 }
 
 public struct MarchingMapData
 {
+    public float[,] HeightMap;
     public float[] Voxels;
     public MarchingGenerator Generator;
 
-    public MarchingMapData(float[] voxels)
+    public MarchingMapData(float[,] heightMap, float[] voxels)
     {
+        HeightMap = heightMap;
         Voxels = voxels;
         
         Generator = new MarchingGenerator();
