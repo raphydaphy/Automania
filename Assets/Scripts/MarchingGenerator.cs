@@ -18,7 +18,7 @@ public class MarchingGenerator
 		EdgeVertex = new Vector3[12];
 	}
 
-	public void Generate(float[] voxels, int size, List<Vector3> vertices, List<int> indices)
+	public void Generate(float[] voxels, int size, MarchingMeshData data)
 	{
 		int x, y, z, i;
 		int ix, iy, iz;
@@ -42,13 +42,13 @@ public class MarchingGenerator
 						Cube[i] = voxels[ix + iy * size + iz * size * size];
 					}
 
-					March(x, y, z, vertices, indices);
+					March(x, y, z, data);
 				}
 			}
 		}
 	}
 
-	public void March(int x, int y, int z, List<Vector3> vertices, List<int> indices)
+	public void March(int x, int y, int z, MarchingMeshData data)
 	{
 		int i, j, vertex, index;
 
@@ -107,14 +107,12 @@ public class MarchingGenerator
 				break;
 			}
 
-			index = vertices.Count;
-
 			// Add each vertex from the triangulation table to the mesh
 			for (j = 0; j < 3; j++)
 			{
+				var uv = new Vector2(x / (float)MarchingMapGenerator.ChunkSize, y / (float)MarchingMapGenerator.ChunkSize);
 				vertex = TriangleConnectionTable[configuration, 3 * i + j];
-				indices.Add(index + WindingOrder[j]);
-				vertices.Add(EdgeVertex[vertex]);
+				data.AddVertex(EdgeVertex[vertex], uv);
 			}
 		}
 	}

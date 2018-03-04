@@ -199,11 +199,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Seed: 0
-  Scale: 40
+  Scale: 50
   Octaves: 8
   Persistance: 0.2
   Lacunarity: 2
-  Offset: {x: 0, y: 0}
+  Offset: {x: 25, y: 0}
   MeshMaterial: {fileID: 2100000, guid: c4f701184d6a54a63974cd17f06a4e52, type: 2}
   Terrain: {fileID: 11400000, guid: 57321c351932b4147a808fd01cb9c556, type: 2}
 --- !u!4 &726046472

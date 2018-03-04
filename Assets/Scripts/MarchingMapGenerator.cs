@@ -5,7 +5,7 @@ using UnityEngine;
 public class MarchingMapGenerator : MonoBehaviour 
 {
     // The size of each chunk, which can be split up again into multiple meshes after being generated
-    public const int ChunkSize = 64;
+    public const int ChunkSize = 32;
     
     // This number must be divisible by 3 since three vertices are needed to make up a triangle
     public const int VerticesPerMesh = 30000;
@@ -30,7 +30,7 @@ public class MarchingMapGenerator : MonoBehaviour
     }
 
     private void Start()
-    {
+    { 
         GenerateMeshes(GenerateMapData(Offset));
     }
 
@@ -38,6 +38,7 @@ public class MarchingMapGenerator : MonoBehaviour
     {
         var heightMap = Noise.GenerateNoiseMap(ChunkSize, ChunkSize, Seed, Scale, Octaves, Persistance, Lacunarity,
             center + Offset);
+        var colorMap = new Color[ChunkSize * ChunkSize];
 
         var voxelMap = new float[ChunkSize * ChunkSize * ChunkSize];
 
@@ -46,17 +47,30 @@ public class MarchingMapGenerator : MonoBehaviour
             for (var z = 0; z < ChunkSize; z++)
             {
                 var height = heightMap[x, z];
+                var modifiedHeight = Terrain.MeshHeightCurve.Evaluate(height) * Terrain.MeshHeightMultiplier;
+                
+                for (var terrain = 0; terrain < Terrain.Regions.Length; terrain++)
+                {
+                    if (height >= Terrain.Regions[terrain].Height)
+                    {
+                        colorMap[z * ChunkSize + x] = Terrain.Regions[terrain].Color;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
                 
                 for (var y = 0; y < ChunkSize; y++)
                 {
                     // 3D noise values, if we want to implement generation on more than two axes
-                    //var fx = x / (ChunkSize - 1f);
-                    //var fy = y / (ChunkSize - 1f);
-                    //var fz = z / (ChunkSize - 1f);
+                    var fx = x / (ChunkSize - 1f);
+                    var fy = y / (ChunkSize - 1f);
+                    var fz = z / (ChunkSize - 1f);
 
                     var id = x + y * ChunkSize + z * ChunkSize * ChunkSize;
                     
-                    if (y >= Terrain.MeshHeightCurve.Evaluate(height) * Terrain.MeshHeightMultiplier)
+                    if (y >= modifiedHeight)
                     {
                         voxelMap[id] = 1f;
                     }
@@ -70,59 +84,67 @@ public class MarchingMapGenerator : MonoBehaviour
             }
         }
         
-        return new MarchingMapData(heightMap, voxelMap);
+        return new MarchingMapData(heightMap, colorMap, voxelMap);
     }
 
-    public void GenerateMeshes(MarchingMapData data)
+    public void GenerateMeshes(MarchingMapData mapData)
     {
         Meshes = new List<GameObject>();
         
-        var vertices = new List<Vector3>();
-        var indices = new List<int>();
+        var meshData = new MarchingMeshData();
         
         // Generates an entire chunk mesh, which will likely contain far more than the max vertices in a Unity mesh
-        data.Generator.Generate(data.Voxels, ChunkSize, vertices, indices);
+        mapData.Generator.Generate(mapData.Voxels, ChunkSize, meshData);
 
+        meshData.Flatten();
+        
         // Calculate the number of meshes we will need to safely draw the vertices
-        var numMeshes = vertices.Count / VerticesPerMesh + 1;
+        var numMeshes = meshData.FlatVertices.Length / VerticesPerMesh + 1;
+        
 
         for (var i = 0; i < numMeshes; i++)
         {
 
-            var splitVerts = new List<Vector3>();
-            var splitIndices = new List<int>();
+            var splitVerts = new Vector3[meshData.FlatTriangles.Length];
+            var splitIndices = new int[meshData.FlatTriangles.Length];
+            var splitUVs = new Vector2[meshData.FlatTriangles.Length];
 
-            for (int j = 0; j < VerticesPerMesh; j++)
+            for (var j = 0; j < VerticesPerMesh; j++)
             {
-                int idx = i * VerticesPerMesh + j;
+                var idx = i * VerticesPerMesh + j;
 
-                if (idx < vertices.Count)
+                if (idx < meshData.FlatVertices.Length)
                 {
-                    splitVerts.Add(vertices[idx]);
-                    splitIndices.Add(j);
+                    splitVerts[j] = meshData.FlatVertices[idx];
+                    splitUVs[j] = meshData.FlatUVs[idx];
+                    splitIndices[j] = j;
                 }
             }
 
-            if (splitVerts.Count == 0) continue;
+            if (splitVerts.Length == 0) continue;
 
-            var splitMesh = new Mesh();
-            splitMesh.SetVertices(splitVerts);
-            splitMesh.SetTriangles(splitIndices, 0);
+            var splitMesh = new Mesh
+            {
+                vertices = splitVerts,
+                triangles = splitIndices,
+                uv = splitUVs
+            };
+            
             splitMesh.RecalculateBounds();
             splitMesh.RecalculateNormals();
-            
-            var colors = new Color[splitVerts.Count];
+            /*
+            var colors = new Color[splitVerts.Length];
 
-            for (var vert = 0; vert < Mathf.FloorToInt(splitVerts.Count / 3); vert++)
+           
+
+            for (var vert = 0; vert < splitVerts.Length; vert++)
             {
-                var height = data.HeightMap[Mathf.RoundToInt(splitVerts[vert * 3].x), Mathf.RoundToInt(splitVerts[vert * 3].z)];
+                var height = mapData.HeightMap[Mathf.RoundToInt(splitVerts[vert].x), Mathf.RoundToInt(splitVerts[vert].z)];
                 for (var terrain = 0; terrain < Terrain.Regions.Length; terrain++)
                 {
                     if (height >= Terrain.Regions[terrain].Height)
                     {
-                        colors[vert * 3] = Terrain.Regions[terrain].Color;
-                        colors[vert * 3 + 1] = Terrain.Regions[terrain].Color;
-                        colors[vert * 3 + 2 ] = Terrain.Regions[terrain].Color;
+                        colors[vert] = Terrain.Regions[terrain].Color;
                     }
                     else
                     {
@@ -130,11 +152,10 @@ public class MarchingMapGenerator : MonoBehaviour
                     }
                 }
             }
-            
 
             // assign the array of colors to the Mesh.
             splitMesh.colors = colors;
-
+*/
             var meshObject = new GameObject("Mesh #" + i);
             meshObject.transform.parent = transform;
             meshObject.AddComponent<MeshFilter>();
@@ -142,6 +163,8 @@ public class MarchingMapGenerator : MonoBehaviour
             meshObject.AddComponent<MeshCollider>();
             meshObject.GetComponent<Renderer>().material = MeshMaterial;
             meshObject.GetComponent<MeshFilter>().mesh = splitMesh;
+            meshObject.GetComponent<MeshRenderer>().material.mainTexture =
+                TextureGenerator.TextureFromColorMap(mapData.ColorMap, ChunkSize, ChunkSize);
             meshObject.GetComponent<MeshCollider>().sharedMesh = splitMesh;
             meshObject.transform.localPosition = new Vector3(-ChunkSize / 2, -ChunkSize / 2, -ChunkSize / 2);
 
@@ -154,13 +177,63 @@ public struct MarchingMapData
 {
     public float[,] HeightMap;
     public float[] Voxels;
+    public Color[] ColorMap;
     public MarchingGenerator Generator;
 
-    public MarchingMapData(float[,] heightMap, float[] voxels)
+    public MarchingMapData(float[,] heightMap, Color[] colorMap, float[] voxels)
     {
         HeightMap = heightMap;
         Voxels = voxels;
+        ColorMap = colorMap;
         
         Generator = new MarchingGenerator();
+    }
+}
+
+public class MarchingMeshData
+{
+    public List<Vector3> Vertices;
+    public List<int> Triangles;
+    public List<Vector2> UVs;
+
+    public Vector3[] FlatVertices;
+    public int[] FlatTriangles;
+    public Vector2[] FlatUVs;
+
+    public MarchingMeshData()
+    {
+        Vertices = new List<Vector3>();
+        Triangles = new List<int>();
+        UVs = new List<Vector2>();
+
+    }
+
+    public void AddTriangle(int a, int b, int c)
+    {
+        Triangles.Add(a);
+        Triangles.Add(b);
+        Triangles.Add(c);
+        
+    }
+
+    public void AddVertex(Vector3 position, Vector2 uv)
+    {
+        Vertices.Add(position);
+        UVs.Add(uv);
+        Triangles.Add(Vertices.Count - 1);
+    }
+
+    public void Flatten()
+    {
+        FlatVertices = new Vector3[Triangles.Count];
+        FlatUVs = new Vector2[Triangles.Count];
+        FlatTriangles = new int[Triangles.Count];
+
+        for (var i = 0; i < Triangles.Count; i++)
+        {
+            FlatVertices[i] = Vertices[Triangles[i]];
+            FlatUVs[i] = UVs[Triangles[i]];
+            FlatTriangles[i] = i;
+        }
     }
 }
