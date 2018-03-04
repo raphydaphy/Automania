@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Security.Policy;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 
 public class MarchingMapGenerator : MonoBehaviour 
 {
     // The size of each chunk, which can be split up again into multiple meshes after being generated
-    public const int ChunkSize = 32;
+    public const int ChunkSize = 64;
     
     // This number must be divisible by 3 since three vertices are needed to make up a triangle
     public const int VerticesPerMesh = 30000;
@@ -36,8 +38,10 @@ public class MarchingMapGenerator : MonoBehaviour
 
     public MarchingMapData GenerateMapData(Vector2 center)
     {
-        var heightMap = Noise.GenerateNoiseMap(ChunkSize, ChunkSize, Seed, Scale, Octaves, Persistance, Lacunarity,
+        var heightMap2D = Noise.GenerateNoiseMap(ChunkSize, ChunkSize, Seed, Scale, Octaves, Persistance, Lacunarity,
             center + Offset);
+        var heightMap3D = Noise.Generate3DNoiseMap(ChunkSize, ChunkSize, ChunkSize, Seed, Scale, Octaves, Persistance,
+            Lacunarity, new Vector3(center.x + Offset.x, 0, center.y + Offset.y));
         var colorMap = new Color[ChunkSize * ChunkSize];
 
         var voxelMap = new float[ChunkSize * ChunkSize * ChunkSize];
@@ -46,12 +50,13 @@ public class MarchingMapGenerator : MonoBehaviour
         {
             for (var z = 0; z < ChunkSize; z++)
             {
-                var height = heightMap[x, z];
-                var modifiedHeight = Terrain.MeshHeightCurve.Evaluate(height) * Terrain.MeshHeightMultiplier;
+                
+                var height2D = heightMap2D[x, z];
+                var modifiedHeight = Mathf.Max(Terrain.MeshHeightCurve.Evaluate(height2D) * Terrain.MeshHeightMultiplier, 0) + 50;
                 
                 for (var terrain = 0; terrain < Terrain.Regions.Length; terrain++)
                 {
-                    if (height >= Terrain.Regions[terrain].Height)
+                    if (height2D >= Terrain.Regions[terrain].Height)
                     {
                         colorMap[z * ChunkSize + x] = Terrain.Regions[terrain].Color;
                     }
@@ -63,13 +68,9 @@ public class MarchingMapGenerator : MonoBehaviour
                 
                 for (var y = 0; y < ChunkSize; y++)
                 {
-                    // 3D noise values, if we want to implement generation on more than two axes
-                    var fx = x / (ChunkSize - 1f);
-                    var fy = y / (ChunkSize - 1f);
-                    var fz = z / (ChunkSize - 1f);
-
+                    var height3D = heightMap3D[x, y, z];
                     var id = x + y * ChunkSize + z * ChunkSize * ChunkSize;
-                    
+
                     if (y >= modifiedHeight)
                     {
                         voxelMap[id] = 1f;
@@ -78,13 +79,12 @@ public class MarchingMapGenerator : MonoBehaviour
                     {
                         voxelMap[id] = 0f;
                     }
-                    
-                    
+
                 }
             }
         }
         
-        return new MarchingMapData(heightMap, colorMap, voxelMap);
+        return new MarchingMapData(heightMap2D, colorMap, voxelMap);
     }
 
     public void GenerateMeshes(MarchingMapData mapData)

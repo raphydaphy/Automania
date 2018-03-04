@@ -110,7 +110,7 @@ public class MarchingGenerator
 			// Add each vertex from the triangulation table to the mesh
 			for (j = 0; j < 3; j++)
 			{
-				var uv = new Vector2(x / (float)MarchingMapGenerator.ChunkSize, y / (float)MarchingMapGenerator.ChunkSize);
+				var uv = new Vector2(x / (float)MarchingMapGenerator.ChunkSize, z / (float)MarchingMapGenerator.ChunkSize);
 				vertex = TriangleConnectionTable[configuration, 3 * i + j];
 				data.AddVertex(EdgeVertex[vertex], uv);
 			}
