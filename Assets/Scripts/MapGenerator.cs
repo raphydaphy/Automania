@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using JetBrains.Annotations;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -7,24 +6,49 @@ public class MapGenerator : MonoBehaviour
 	public int Size = 32;
 	public long Seed;
 	public float Surface = 0.5f;
+	public bool UseFalloff = true;
+	public Vector3 Offset;
 
-	public bool PointCloudMode;
+	public Renderer textureRenderer;
+
+	private const int MaxVertsPerMesh = 30000;
+
+	public enum DrawMode
+	{
+		PointCloud,
+		FalloffMap,
+		Mesh
+	};
+
+	public DrawMode Mode = DrawMode.Mesh;
 	
 	private List<GameObject> _meshes = new List<GameObject>();
 	
 	private void Start ()
 	{
-		var pointCloud = LayeredNoise.GeneratePointCloud(Size, Seed, 10, 5, 0.2f, 2, new Vector3(0, 0, 0));
+		if (Mode == DrawMode.FalloffMap)
+		{
+			var texture = TextureGenerator.TextureFrom3DHeightMap(FalloffGenerator.GenerateFalloffMap(Size), 2);
+			textureRenderer.sharedMaterial.mainTexture = texture;
+			textureRenderer.transform.localScale = new Vector3(texture.width, 1, texture.height);
+			return;
+		}
+		var pointCloud = LayeredNoise.GeneratePointCloud(Size, Seed, 10, 5, 0.2f, 2, Offset);
 		var voxels = new float[Size * Size * Size];
+		var falloff = FalloffGenerator.GenerateFalloffMap(Size);
 		for (var x = 0; x < Size; x++)
 		{
 			for (var y = 0; y < Size; y++)
 			{
 				for (var z = 0; z < Size; z++)
 				{
+					if (UseFalloff)
+					{
+						pointCloud[x, y, z] = Mathf.Clamp(pointCloud[x, y, z] - falloff[x, y, z], 0, 1);
+					}
 					var noiseVal = pointCloud[x, y, z];
 
-					if (PointCloudMode)
+					if (Mode == DrawMode.PointCloud)
 					{
 						if (noiseVal > Surface)
 						{
@@ -39,7 +63,7 @@ public class MapGenerator : MonoBehaviour
 			}
 		}
 
-		if (PointCloudMode)
+		if (Mode != DrawMode.Mesh)
 		{
 			return;
 		}
@@ -50,9 +74,7 @@ public class MapGenerator : MonoBehaviour
 		var generator = new MarchingCubesGenerator(Surface);
 		
 		generator.Generate(voxels, Size, Size, Size, vertices, indices);
-		
-		var maxVertsPerMesh = 30000; //must be divisible by 3, ie 3 verts == 1 triangle
-		var numMeshes = vertices.Count / maxVertsPerMesh + 1;
+		var numMeshes = vertices.Count / MaxVertsPerMesh + 1;
 
 		for (var i = 0; i < numMeshes; i++)
 		{
@@ -60,9 +82,9 @@ public class MapGenerator : MonoBehaviour
 			var splitVerts = new List<Vector3>();
 			var splitIndices = new List<int>();
 
-			for (var j = 0; j < maxVertsPerMesh; j++)
+			for (var j = 0; j < MaxVertsPerMesh; j++)
 			{
-				var idx = i * maxVertsPerMesh + j;
+				var idx = i * MaxVertsPerMesh + j;
 
 				if (idx < vertices.Count)
 				{
