@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -6,48 +7,87 @@ public class MapGenerator : MonoBehaviour
 	public int Size = 32;
 	public long Seed;
 	public float Surface = 0.5f;
-	public bool UseFalloff = true;
 	public Vector3 Offset;
 
 	public Renderer textureRenderer;
+
+	private OpenSimplexNoise noise;
 
 	private const int MaxVertsPerMesh = 30000;
 
 	public enum DrawMode
 	{
 		PointCloud,
-		FalloffMap,
 		Mesh
 	};
 
 	public DrawMode Mode = DrawMode.Mesh;
 	
 	private List<GameObject> _meshes = new List<GameObject>();
-	
+
+	private float Density(int x, int y, int z, int octaves, float scale, float persistance, float lacunarity, IList<Vector3> octaveOffsets)
+	{
+		var density = -y / 2f + 6f;
+		var halfSize = Size / 2f;
+		var amplitude = 1f;
+		var frequency = 1f;
+
+		for (var i = 0; i < octaves; i++)
+		{
+			var sampleX = (x - halfSize + octaveOffsets[i].x) / scale * frequency;
+			var sampleY = (y - halfSize + octaveOffsets[i].y) / scale * frequency;
+			var sampleZ = (z - halfSize + octaveOffsets[i].z) / scale * frequency;
+			var perlinValue = (float)noise.Evaluate(sampleX, sampleY, sampleZ) * 2 - 1;
+
+			density += perlinValue * amplitude;
+
+			amplitude *= persistance;
+			frequency *= lacunarity;
+		}
+		
+		return density * halfSize;
+	}
+
+
+	private IList<Vector3> GenOctaveOffsets(int octaves, float persistance, Vector3 offset)
+	{
+		var rand = new System.Random(OpenSimplexNoise.FastFloor(Seed));
+		var octaveOffsets = new Vector3[octaves];
+
+		float maxHeight = 0;
+		float amplitude = 1;
+        
+		for (var i = 0; i < octaves; i++)
+		{
+			var offX = rand.Next(-100000, 100000) + offset.x;
+			var offY = rand.Next(-100000, 100000) - offset.y;
+			var offZ = rand.Next(-100000, 100000) + offset.z;
+			octaveOffsets[i] = new Vector3(offX, offY, offZ);
+
+			maxHeight += amplitude;
+			amplitude *= persistance;
+		}
+
+		return octaveOffsets;
+	}
 	private void Start ()
 	{
-		if (Mode == DrawMode.FalloffMap)
-		{
-			var texture = TextureGenerator.TextureFrom3DHeightMap(FalloffGenerator.GenerateFalloffMap(Size), 2);
-			textureRenderer.sharedMaterial.mainTexture = texture;
-			textureRenderer.transform.localScale = new Vector3(texture.width, 1, texture.height);
-			return;
-		}
-		var pointCloud = LayeredNoise.GeneratePointCloud(Size, Seed, 10, 5, 0.2f, 2, Offset);
+		noise = new OpenSimplexNoise(Seed);
+		
 		var voxels = new float[Size * Size * Size];
-		var falloff = FalloffGenerator.GenerateFalloffMap(Size);
+
+		const int octaves = 12;
+		const float persistance = 0.5f;
+		
+		var octaveOffsets = GenOctaveOffsets(octaves, persistance, Offset);
 		for (var x = 0; x < Size; x++)
 		{
 			for (var y = 0; y < Size; y++)
 			{
 				for (var z = 0; z < Size; z++)
 				{
-					if (UseFalloff)
-					{
-						pointCloud[x, y, z] = Mathf.Clamp(pointCloud[x, y, z] - falloff[x, y, z], 0, 1);
-					}
-					var noiseVal = pointCloud[x, y, z];
-
+					var noiseVal = Density(x, y, z, octaves, 14, persistance, 2, octaveOffsets);
+		
 					if (Mode == DrawMode.PointCloud)
 					{
 						if (noiseVal > Surface)
@@ -105,7 +145,7 @@ public class MapGenerator : MonoBehaviour
 			go.transform.parent = transform;
 			go.AddComponent<MeshFilter>();
 			go.AddComponent<MeshRenderer>();
-			go.GetComponent<Renderer>().material.color = Color.blue;
+			go.GetComponent<Renderer>().material.color = new Color(38 / 255f, 194 / 255f, 129 / 255f);
 			go.GetComponent<MeshFilter>().mesh = mesh;
 			go.transform.localPosition = new Vector3(-Size / 2, -Size / 2, -Size / 2);
 
