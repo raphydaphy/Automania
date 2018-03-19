@@ -35,8 +35,8 @@ public class Main
 		FontRenderManager.init(loader);
 
 		FontType arial = new FontType(loader.loadTextureExact("src/main/resources/fonts/arial.png", 0), new File("src/main/resources/fonts/arial.fnt"));
-		GUIText text = new GUIText("hello world",10, arial, new Vector2f(0.5f, 0.5f), 0.5f,  true);
-		text.setColour(1, 1, 0);
+		GUIText fpsCounter = new GUIText("FPS: N/A",3, arial, new Vector2f(0, 0), 1f,  true);
+		fpsCounter.setColour(1, 1, 0);
 		int colors = loader.loadTexture("colors");
 
 		World world = new World(0, loader);
@@ -69,9 +69,16 @@ public class Main
 
 		InteractionManager interactionManager = new InteractionManager(camera, renderer.getProjectionMatrix());
 
+		int lastFPSText = DisplayManager.curFPS;
+
 		while (!Display.isCloseRequested())
 		{
 			float delta = DisplayManager.getFrameTimeSeconds();
+
+			if (lastFPSText != DisplayManager.curFPS)
+			{
+				fpsCounter.setText("FPS: " + new Random().nextFloat());
+			}
 
 			player.move(world, delta);
 			camera.move();

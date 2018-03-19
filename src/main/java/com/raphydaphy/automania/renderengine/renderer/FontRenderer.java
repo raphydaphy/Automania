@@ -50,7 +50,7 @@ public class FontRenderer
 
 	private void renderText(GUIText text)
 	{
-		GL30.glBindVertexArray(text.getMesh());
+		GL30.glBindVertexArray(text.getMeshVAO());
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(2);
 		shader.loadColor(text.getColour());

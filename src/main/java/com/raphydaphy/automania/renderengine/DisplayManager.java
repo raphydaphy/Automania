@@ -14,6 +14,10 @@ public class DisplayManager
     private static long lastFrameTime;
     private static float delta;
 
+    public static int curFPS;
+    private static int fps;
+    private static long lastFPS;
+
     public static boolean hasResized;
 
     public static void createDisplay(String title)
@@ -47,11 +51,27 @@ public class DisplayManager
 	    	hasResized = true;
 	    }
 
+	    long currentTime = getCurrentTime();
+	    updateFPS(currentTime);
+
         Display.sync(FPS_CAP);
         Display.update();
-        long currentTime = getCurrentTime();
+
         delta = (currentTime - lastFrameTime) / 1000f;
         lastFrameTime = currentTime;
+
+
+    }
+
+    private static void updateFPS(long currentTime)
+    {
+    	if (currentTime - lastFPS > 1000)
+	    {
+	    	curFPS = fps;
+	    	fps = 0;
+	    	lastFPS += 1000;
+	    }
+	    fps++;
     }
 
     public static void closeDisplay()
