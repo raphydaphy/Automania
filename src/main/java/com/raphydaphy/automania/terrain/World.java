@@ -1,11 +1,13 @@
 package main.java.com.raphydaphy.automania.terrain;
 
+import main.java.com.raphydaphy.automania.models.TexturedModel;
+import main.java.com.raphydaphy.automania.render.ModelTransform;
+import main.java.com.raphydaphy.automania.render.Transform;
 import main.java.com.raphydaphy.automania.renderengine.load.Loader;
 import main.java.com.raphydaphy.automania.util.Pos3;
 import org.lwjgl.util.vector.Vector3f;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class World
 {
@@ -14,11 +16,47 @@ public class World
 	private Map<Pos3, Terrain> chunks;
 	private Loader loader;
 
-	public World(Loader loader)
+	private Random rand;
+
+	public World(long seed, Loader loader)
 	{
 		this.loader = loader;
+		this.rand = new Random(seed);
 
 		chunks = new HashMap<>();
+	}
+
+	public void updateWorld(List<ModelTransform> trees, TexturedModel treeModel)
+	{
+		int processed = 0;
+		for (Terrain terrain : chunks.values())
+		{
+			if (terrain.received && !terrain.populated)
+			{
+				for (int i = 0; i < Terrain.SIZE / 8; i++)
+				{
+					Vector3f treePos = new Vector3f(rand.nextInt(Terrain.SIZE) + terrain.getX(), -1f, rand.nextInt(Terrain.SIZE) + terrain.getZ());
+					treePos.y = terrain.getExactHeight(treePos.x, treePos.z) - 1;
+
+					if (treePos.y > 0)
+					{
+						Transform treeTransform = new Transform(treePos, 0, rand.nextInt(360), 0, rand.nextInt(5) + 5);
+						trees.add(new ModelTransform(treeTransform, treeModel));
+					}
+				}
+				terrain.populated = true;
+			} else if (processed < World.MAX_TERRAINS_PER_FRAME && !terrain.received && terrain.meshesUnprocessed != null)
+			{
+				List<TerrainMesh> meshes = new ArrayList<>();
+				for (TerrainMeshData meshData : terrain.meshesUnprocessed)
+				{
+					meshes.add(meshData.generateMesh(loader));
+				}
+				terrain.setMeshes(meshes);
+				terrain.received = true;
+				processed++;
+			}
+		}
 	}
 
 	public Terrain getChunkFromWorldCoords(Vector3f worldCoords)
@@ -28,7 +66,7 @@ public class World
 
 	public Terrain getChunkFromWorldCoords(float worldX, float worldY, float worldZ)
 	{
-		Pos3 gridPos = new Pos3( (int)Math.floor(worldX / (Terrain.SIZE - 1)), (int) Math.floor(worldY / (Terrain.SIZE - 1)), (int) Math.floor(worldZ / (Terrain.SIZE - 1)));
+		Pos3 gridPos = new Pos3((int) Math.floor(worldX / (Terrain.SIZE - 1)), (int) Math.floor(worldY / (Terrain.SIZE - 1)), (int) Math.floor(worldZ / (Terrain.SIZE - 1)));
 		gridPos.y = 0;
 		if (chunks.containsKey(gridPos))
 		{
@@ -46,9 +84,9 @@ public class World
 
 	public void updateVisibleChunks(Vector3f viewPosition)
 	{
-		for (int x = - VIEW_DISTANCE; x <= VIEW_DISTANCE; x++)
+		for (int x = -VIEW_DISTANCE; x <= VIEW_DISTANCE; x++)
 		{
-			for (int z = - VIEW_DISTANCE; z < VIEW_DISTANCE; z++)
+			for (int z = -VIEW_DISTANCE; z < VIEW_DISTANCE; z++)
 			{
 				Pos3 chunk = new Pos3(x * (Terrain.SIZE - 1), 0, z * (Terrain.SIZE - 1));
 				getChunkFromWorldCoords(chunk.x + viewPosition.x, viewPosition.y, chunk.z + viewPosition.z);

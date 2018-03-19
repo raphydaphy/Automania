@@ -245,7 +245,7 @@ public class Terrain
 		return models;
 	}
 
-	public float getHighestVoxel(float worldX, float worldZ)
+	public float getExactHeight(float worldX, float worldZ)
 	{
 		float terrainX = worldX - this.x;
 		float terrainZ = worldZ - this.z;
@@ -298,5 +298,18 @@ public class Terrain
 		}
 
 		return 0;
+	}
+
+	public int getHighestVoxelCoord(int innerX, int innerZ)
+	{
+		for (int y = Terrain.SIZE - 2; y > 0; y--)
+		{
+			float density = getDensity(innerX, y, innerZ);
+			if (density > 0.5f)
+			{
+				return y;
+			}
+		}
+		return Integer.MAX_VALUE;
 	}
 }

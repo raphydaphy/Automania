@@ -3,7 +3,6 @@ package main.java.com.raphydaphy.automania.entity;
 import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.render.Transform;
-import main.java.com.raphydaphy.automania.renderengine.DisplayManager;
 import main.java.com.raphydaphy.automania.terrain.Terrain;
 import main.java.com.raphydaphy.automania.terrain.World;
 import org.lwjgl.input.Keyboard;
@@ -32,10 +31,8 @@ public class Player
 		this.data = new ModelTransform(new Transform(position, rotX, rotY, rotZ, scale), model);
 	}
 
-	public void move(World world)
+	public void move(World world, float delta)
 	{
-		float delta = DisplayManager.getFrameTimeSeconds();
-
 		doInput();
 		data.getTransform().rotate(0, currentTurnSpeed * delta, 0);
 
@@ -54,7 +51,7 @@ public class Player
 
 		if (terrain != null && terrain.received)
 		{
-			ground = terrain.getHighestVoxel(data.getTransform().getPosition().x, data.getTransform().getPosition().z);
+			ground = terrain.getExactHeight(data.getTransform().getPosition().x, data.getTransform().getPosition().z);
 		}
 
 		if (data.getTransform().getPosition().y < ground)

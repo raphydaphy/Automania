@@ -32,15 +32,14 @@ public class Main
 		DisplayManager.createDisplay("Automania");
 
 		Loader loader = new Loader();
-		Random rand = new Random(Terrain.SEED);
 		FontRenderManager.init(loader);
 
 		FontType arial = new FontType(loader.loadTextureExact("src/main/resources/fonts/arial.png"), new File("src/main/resources/fonts/arial.fnt"));
-		GUIText text = new GUIText("hello world",1, arial, new Vector2f(10, 0), 1f, true);
+		GUIText text = new GUIText("hello world",1, arial, new Vector2f(10, 0), 1f,  true);
 		text.setColour(1, 0, 1);
 		int colors = loader.loadTexture("colors");
 
-		World world = new World(loader);
+		World world = new World(0, loader);
 
 
 		ModelData treeData = OBJLoader.loadOBJ("tree");
@@ -68,91 +67,20 @@ public class Main
 		Camera camera = new Camera(player);
 		RenderManager renderer = new RenderManager(camera);
 
-		MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix());
+		InteractionManager interactionManager = new InteractionManager(camera, renderer.getProjectionMatrix());
 
 		while (!Display.isCloseRequested())
 		{
-			player.move(world);
+			float delta = DisplayManager.getFrameTimeSeconds();
+
+			player.move(world, delta);
 			camera.move();
 
-			picker.update();
+			interactionManager.update(world, player, loader, delta);
+			world.updateWorld(trees, treeModel);
 
-			if (Mouse.isButtonDown(0))
-			{
-				int modifyX = (int)player.data.getTransform().getPosition().x;
-				int modifyY = Integer.MAX_VALUE;
-				int modifyZ = (int)player.data.getTransform().getPosition().z;
-
-				Terrain terrain = world.getChunkFromWorldCoords(modifyX, player.data.getTransform().getPosition().y, modifyZ);
-
-				if (terrain != null && terrain.received)
-				{
-					for (int y = Terrain.SIZE - 2; y > 0; y--)
-					{
-						float density = terrain.getDensity(modifyX, y, modifyZ);
-						if (density > 0.5f)
-						{
-							modifyY = y;
-							break;
-						}
-					}
-
-					if (modifyY < Float.MAX_VALUE)
-					{
-						int range = 5;
-
-						for (int mx = -range; mx < +range; mx++)
-						{
-							for (int mz = -range; mz < +range; mz++)
-							{
-								float density = terrain.getDensity(modifyX + mx, modifyY, modifyZ + mz);
-
-								float factor = Math.abs(mx) + Math.abs(mz);
-
-								float remove = Math.max(0, 0.3f - (0.02f * factor));
-
-								if (!terrain.setDensity(modifyX + mx, modifyY, modifyZ + mz, density - remove))
-								{
-									System.out.println("sadness");
-								}
-							}
-						}
-
-						terrain.regenerateTerrain(loader);
-					}
-				}
-			}
-
-			int processed = 0;
 			for (Terrain terrain : world.getChunks().values())
 			{
-				if (terrain.received && !terrain.populated)
-				{
-					for (int i = 0; i < Terrain.SIZE / 8; i++)
-					{
-						Vector3f treePos = new Vector3f(rand.nextInt(Terrain.SIZE) + terrain.getX(),-1f, rand.nextInt(Terrain.SIZE) + terrain.getZ());
-						treePos.y = terrain.getHighestVoxel(treePos.x, treePos.z) - 1;
-
-						if (treePos.y > 0)
-						{
-							Transform treeTransform = new Transform(treePos, 0, rand.nextInt(360), 0, rand.nextInt(5) + 5);
-							trees.add(new ModelTransform(treeTransform, treeModel));
-						}
-					}
-					terrain.populated = true;
-				}
-				else if (processed < World.MAX_TERRAINS_PER_FRAME && !terrain.received && terrain.meshesUnprocessed != null)
-				{
-					List<TerrainMesh> meshes = new ArrayList<>();
-					for (TerrainMeshData meshData : terrain.meshesUnprocessed)
-					{
-						meshes.add(meshData.generateMesh(loader));
-					}
-					terrain.setMeshes(meshes);
-					terrain.received = true;
-					processed++;
-				}
-
 				if (terrain.received)
 				{
 					renderer.processTerrain(terrain);
