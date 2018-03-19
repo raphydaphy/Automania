@@ -8,7 +8,6 @@ out vec4 shadow_coords;
 
 flat out vec4 frag_color;
 flat out vec3 total_diffuse;
-flat out vec3 total_specular;
 flat out float visibility;
 
 const float fog_density = 0.005;
@@ -23,8 +22,6 @@ uniform mat4 view;
 uniform vec3 light_position[4];
 uniform vec3 light_color[4];
 uniform vec3 light_attenuation[4];
-uniform float shine_damper;
-uniform float reflectivity;
 uniform vec3 sky_color;
 
 uniform mat4 to_shadow_map_space;
@@ -57,7 +54,7 @@ void main()
 
     frag_color = vec4(color, 1);
 
-     vec3 unit_normal = normalize(frag_surface_normal);
+    vec3 unit_normal = normalize(frag_surface_normal);
     vec3 unit_camera_vector = normalize(frag_camera_vector);
 
     for (int i = 0; i < 4; i++)
@@ -69,15 +66,6 @@ void main()
         float light_angle = dot(unit_normal, unit_light_vector);
         float brightness = max(light_angle, 0);
 
-        vec3 light_direction = -unit_light_vector;
-        vec3 reflection = reflect(light_direction, unit_normal);
-
-        float reflection_angle = dot(reflection, unit_camera_vector);
-        reflection_angle = max(reflection_angle, 0);
-
-        float dampening_factor = pow(reflection_angle, shine_damper);
-
         total_diffuse = total_diffuse + (brightness * light_color[i]) / attFactor;
-        total_specular = total_specular + (dampening_factor * reflectivity * light_color[i]) / attFactor;
     }
 }

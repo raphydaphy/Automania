@@ -26,6 +26,6 @@ public class ObjectShader extends WorldShader
 
 	public void setArtificialLighting(boolean useArtificialLighting)
 	{
-		super.uniformInt(artificialLightingLocation, useArtificialLighting == true ? 1 : 0);
+		super.uniformInt(artificialLightingLocation, useArtificialLighting ? 1 : 0);
 	}
 }

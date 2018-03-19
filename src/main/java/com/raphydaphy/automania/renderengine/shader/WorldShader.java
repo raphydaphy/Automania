@@ -16,8 +16,6 @@ public class WorldShader extends ShaderProgram
 	private int[] lightPositionLocation;
 	private int[] lightColorLocation;
 	private int[] lightAttenuationLocation;
-	private int shineDamperLocation;
-	private int reflectivityLocation;
 	private int skyColorLocation;
 
 	public WorldShader(String name)
@@ -40,8 +38,6 @@ public class WorldShader extends ShaderProgram
 		transformLocation = super.getUniformLocation("transform");
 		projectionLocation = super.getUniformLocation("projection");
 		viewLocation = super.getUniformLocation("view");
-		shineDamperLocation = super.getUniformLocation("shine_damper");
-		reflectivityLocation = super.getUniformLocation("reflectivity");
 		skyColorLocation = super.getUniformLocation("sky_color");
 
 		lightPositionLocation = new int[MAX_LIGHTS];
@@ -59,12 +55,6 @@ public class WorldShader extends ShaderProgram
 	public void loadSkyColor(Vector3f skyColor)
 	{
 		super.uniformVector3(skyColorLocation, skyColor);
-	}
-
-	public void loadReflectionInfo(float damper, float reflectivity)
-	{
-		super.uniformFloat(shineDamperLocation, damper);
-		super.uniformFloat(reflectivityLocation, reflectivity);
 	}
 
 	public void loadTransformationMatrix(Matrix4f transform)

@@ -35,18 +35,15 @@ public class Main
 		FontRenderManager.init(loader);
 
 		FontType arial = new FontType(loader.loadTextureExact("src/main/resources/fonts/arial.png", 0), new File("src/main/resources/fonts/arial.fnt"));
-		GUIText fpsCounter = new GUIText("FPS: N/A",3, arial, new Vector2f(0, 0), 1f,  true);
-		fpsCounter.setColour(1, 1, 0);
+		GUIText info = new GUIText("Automania Alpha",2.5f, arial, new Vector2f(0, 0), 1f,  true);
+		info.setColour(1, 1, 0);
 		int colors = loader.loadTexture("colors");
 
 		World world = new World(0, loader);
 
-
 		ModelData treeData = OBJLoader.loadOBJ("tree");
 		RawModel treeRaw = loader.loadToModel(treeData.getVertices(), treeData.getUVS(), treeData.getNormals(), treeData.getIndices());
 		Material treeMaterial = new Material(colors);
-		treeMaterial.setShineDamper(5);
-		treeMaterial.setReflectivity(0.1f);
 		TexturedModel treeModel = new TexturedModel(treeRaw, treeMaterial);
 		List<ModelTransform> trees = new ArrayList<>();
 
@@ -69,16 +66,9 @@ public class Main
 
 		InteractionManager interactionManager = new InteractionManager(camera, renderer.getProjectionMatrix());
 
-		int lastFPSText = DisplayManager.curFPS;
-
 		while (!Display.isCloseRequested())
 		{
 			float delta = DisplayManager.getFrameTimeSeconds();
-
-			if (lastFPSText != DisplayManager.curFPS)
-			{
-				fpsCounter.setText("FPS: " + new Random().nextFloat());
-			}
 
 			player.move(world, delta);
 			camera.move();

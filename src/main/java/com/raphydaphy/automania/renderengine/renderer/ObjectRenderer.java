@@ -58,7 +58,6 @@ public class ObjectRenderer
 
         // Load the reflection information from the material to the shader
         Material texture = model.getTexture();
-        shader.loadReflectionInfo(texture.getShineDamper(), texture.getReflectivity());
 
         // Set all the normals to point upwards if the material is transparent
         shader.setArtificialLighting(texture.usesArtificialLighting());

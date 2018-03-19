@@ -4,7 +4,6 @@ in vec4 shadow_coords;
 
 flat in vec4 frag_color;
 flat in vec3 total_diffuse;
-flat in vec3 total_specular;
 flat in float visibility;
 
 out vec4 out_color;
@@ -38,8 +37,8 @@ void main()
 
     float light_factor = 1 - (total * shadow_coords.w);
 
-    vec3 shadow_diffuse = max(total_diffuse, 0.4) * light_factor;
+    vec3 shadow_diffuse = max(total_diffuse, 0.4)* light_factor;
 
-    out_color = vec4(shadow_diffuse, 1) * frag_color + vec4(total_specular, 1);
+    out_color = vec4(shadow_diffuse, 1) * frag_color;
     out_color = mix(vec4(sky_color, 1), out_color, visibility);
 }
