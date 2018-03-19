@@ -4,7 +4,6 @@ import main.java.com.raphydaphy.automania.font.FontType;
 import main.java.com.raphydaphy.automania.font.GUIText;
 import main.java.com.raphydaphy.automania.font.TextMeshData;
 import main.java.com.raphydaphy.automania.renderengine.load.Loader;
-import org.lwjgl.opengl.GL30;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,46 +22,32 @@ public class FontRenderManager
 		loader = loaderIn;
 	}
 
-	public static void render()
-	{
+	public static void render(){
 		renderer.render(texts);
 	}
 
-	public static void load(GUIText text)
-	{
+	public static void load(GUIText text){
 		FontType font = text.getFont();
 		TextMeshData data = font.loadText(text);
 		int vao = loader.loadToVAO(data.getVertexPositions(), 2, data.getTextureCoords(), 2,null, null);
 		text.setMeshInfo(vao, data.getVertexCount());
-		List<GUIText> batch = texts.get(font);
-		if (batch == null)
-		{
-			batch = new ArrayList<>();
-			texts.put(font, batch);
+		List<GUIText> textBatch = texts.get(font);
+		if(textBatch == null){
+			textBatch = new ArrayList<>();
+			texts.put(font, textBatch);
 		}
-		batch.add(text);
+		textBatch.add(text);
 	}
 
-	public static void remove(GUIText text, boolean destroy)
-	{
-		if (texts.containsKey(text.getFont()))
-		{
-			List<GUIText> batch = texts.get(text.getFont());
-			batch.remove(text);
-			if (batch.isEmpty())
-			{
-				texts.remove(batch);
-			}
-		}
-
-		if (destroy)
-		{
-			GL30.glDeleteVertexArrays(text.getMesh());
+	public static void remove(GUIText text){
+		List<GUIText> textBatch = texts.get(text.getFont());
+		textBatch.remove(text);
+		if(textBatch.isEmpty()){
+			texts.remove(texts.get(text.getFont()));
 		}
 	}
 
-	public static void cleanup()
-	{
+	public static void cleanup(){
 		renderer.cleanup();
 	}
 }

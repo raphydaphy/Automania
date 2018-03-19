@@ -26,7 +26,7 @@ public class FontShader extends ShaderProgram
 	protected void bindAttributes()
 	{
 		super.bindAttribute(0, "position");
-		super.bindAttribute(1, "uvs");
+		super.bindAttribute(2, "uvs");
 	}
 
 	public void loadColor(Vector3f color)

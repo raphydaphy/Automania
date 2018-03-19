@@ -34,9 +34,9 @@ public class Main
 		Loader loader = new Loader();
 		FontRenderManager.init(loader);
 
-		FontType arial = new FontType(loader.loadTextureExact("src/main/resources/fonts/arial.png"), new File("src/main/resources/fonts/arial.fnt"));
-		GUIText text = new GUIText("hello world",1, arial, new Vector2f(10, 0), 1f,  true);
-		text.setColour(1, 0, 1);
+		FontType arial = new FontType(loader.loadTextureExact("src/main/resources/fonts/arial.png", 0), new File("src/main/resources/fonts/arial.fnt"));
+		GUIText text = new GUIText("hello world",10, arial, new Vector2f(0.5f, 0.5f), 0.5f,  true);
+		text.setColour(1, 1, 0);
 		int colors = loader.loadTexture("colors");
 
 		World world = new World(0, loader);

@@ -64,15 +64,15 @@ public class Loader
 
 	public int loadTexture(String filename)
 	{
-		return loadTextureExact("src/main/resources/textures/" + filename + ".png");
+		return loadTextureExact("src/main/resources/textures/" + filename + ".png", -0.4f);
 	}
 
-	public int loadTextureExact(String file)
+	public int loadTextureExact(String file, float bias)
 	{
 		Texture texture = new Texture(file);
 		GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -0.4f);
+		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, bias);
 
 		// Add the texture ID to the array in order to safely delete it on shutdown and return the ID
 		int textureID = texture.getTextureID();

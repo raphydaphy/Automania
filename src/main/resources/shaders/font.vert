@@ -9,7 +9,6 @@ uniform vec2 translation;
 
 void main(void)
 {
-    gl_Position = vec4(position + translation * vec2(2, -2), 0, 1);
-
+    gl_Position = vec4(position + translation * vec2(2,-2), 0.0, 1.0);
     frag_uvs = uvs;
 }

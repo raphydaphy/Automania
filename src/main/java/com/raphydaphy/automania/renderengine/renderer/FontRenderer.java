@@ -1,6 +1,5 @@
 package main.java.com.raphydaphy.automania.renderengine.renderer;
 
-
 import main.java.com.raphydaphy.automania.font.FontType;
 import main.java.com.raphydaphy.automania.font.GUIText;
 import main.java.com.raphydaphy.automania.renderengine.shader.FontShader;
@@ -14,17 +13,11 @@ import java.util.Map;
 
 public class FontRenderer
 {
-
 	private FontShader shader;
 
 	public FontRenderer()
 	{
 		shader = new FontShader();
-	}
-
-	public void cleanup()
-	{
-		shader.cleanup();
 	}
 
 	public void render(Map<FontType, List<GUIText>> texts)
@@ -34,13 +27,17 @@ public class FontRenderer
 		{
 			GL13.glActiveTexture(GL13.GL_TEXTURE0);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, font.getTextureAtlas());
-
 			for (GUIText text : texts.get(font))
 			{
 				renderText(text);
 			}
 		}
 		endRendering();
+	}
+
+	public void cleanup()
+	{
+		shader.cleanup();
 	}
 
 	private void prepare()
