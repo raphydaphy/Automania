@@ -9,6 +9,9 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class InteractionManager
 {
 	private Vector3f currentRay;
@@ -48,8 +51,6 @@ public class InteractionManager
 
 			if (digProgress >= 0.25f)
 			{
-
-				System.out.println("rawr");
 				digProgress = 0;
 				int modifyX = (int) player.data.getTransform().getPosition().x;
 				int modifyZ = (int) player.data.getTransform().getPosition().z;
@@ -63,11 +64,11 @@ public class InteractionManager
 
 					if (modifyX < 0)
 					{
-						modifyX = Terrain.SIZE - 1 + modifyX;
+						modifyX = Terrain.SIZE + modifyX;
 					}
 					if (modifyZ < 0)
 					{
-						modifyZ = Terrain.SIZE - 1 + modifyZ;
+						modifyZ = Terrain.SIZE + modifyZ;
 					}
 
 					System.out.println("Terrain: " + terrain.getX() + ", " + terrain.getZ() + ". Player: " + player.data.getTransform().getPosition().x + ", " + player.data.getTransform().getPosition().z + ". Grid: " + modifyX + ", " + modifyZ);
@@ -75,8 +76,9 @@ public class InteractionManager
 
 					if (modifyY < Integer.MAX_VALUE)
 					{
-						int range = 5;
+						int range = 2;
 
+						List<Terrain> adjChunks = new ArrayList<>();
 						for (int mx = -range; mx < +range; mx++)
 						{
 							for (int mz = -range; mz < +range; mz++)
@@ -89,29 +91,32 @@ public class InteractionManager
 
 								if (!terrain.setDensity(modifyX + mx, modifyY, modifyZ + mz, density - remove))
 								{
-									Pos3 adj = new Pos3((int)terrain.getX() + modifyX + mx, 0, (int)terrain.getZ() + modifyZ + mz);
+									Pos3 adj = new Pos3((int)terrain.getX() + modifyX + mx, modifyY, (int)terrain.getZ() + modifyZ + mz);
 									Terrain terrAdj = world.getChunkFromWorldCoords(terrain.getX() + modifyX + mx, 0, terrain.getZ() + modifyZ + mz);
 									if (terrAdj != null && terrAdj.received)
 									{
-										adj.x = adj.x % (Terrain.SIZE - 1);
-										adj.z = adj.z % (Terrain.SIZE - 1);
+										adj.x = adj.x % (Terrain.SIZE);
+										adj.z = adj.z % (Terrain.SIZE);
 
 										if (adj.x < 0)
 										{
-											adj.x = Terrain.SIZE - 1 + adj.x;
+											adj.x = Terrain.SIZE + adj.x;
 										}
 										if (adj.z < 0)
 										{
-											adj.z = Terrain.SIZE - 1 + adj.z;
+											adj.z = Terrain.SIZE + adj.z;
 										}
 
-										adj.y = terrAdj.getHighestVoxelCoord(adj.x, adj.z);
+										//adj.y = terrAdj.getHighestVoxelCoord(adj.x, adj.z);
 
 
-										System.out.println("Got adjacent terrain at " + adj.x + ", " + adj.y + ", " + adj.z);
+										System.out.println("Got adjacent terrain at " + adj.x + ", " + adj.y + ", " + adj.z + " offset: " + mx + ", " + mz + " center: " + modifyX + ", " + modifyZ + " adj terrain: " + terrAdj.getX() + ", " + terrAdj.getZ());
 										if (adj.y < Integer.MAX_VALUE)
 										{
-											terrAdj.setDensity(adj.x, adj.y, adj.z, density - remove);
+											if (terrAdj.setDensity(adj.x, adj.y, adj.z, density - remove) && !adjChunks.contains(terrAdj))
+											{
+												adjChunks.add(terrAdj);
+											}
 										}
 									}
 								}
@@ -119,6 +124,10 @@ public class InteractionManager
 						}
 
 						terrain.regenerateTerrain(loader);
+						for (Terrain adjTerr : adjChunks)
+						{
+							adjTerr.regenerateTerrain(loader);
+						}
 					}
 				}
 			}
