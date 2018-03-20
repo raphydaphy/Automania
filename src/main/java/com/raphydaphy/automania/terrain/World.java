@@ -4,6 +4,7 @@ import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.render.Transform;
 import main.java.com.raphydaphy.automania.renderengine.load.Loader;
+import main.java.com.raphydaphy.automania.util.OpenSimplexNoise;
 import main.java.com.raphydaphy.automania.util.Pos3;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -16,12 +17,16 @@ public class World
 	private Map<Pos3, Terrain> chunks;
 	private Loader loader;
 
-	private Random rand;
+	public final OpenSimplexNoise noise;
+	public final Random rand;
+	public final long seed;
 
 	public World(long seed, Loader loader)
 	{
 		this.loader = loader;
+		this.noise = new OpenSimplexNoise(seed);
 		this.rand = new Random(seed);
+		this.seed = seed;
 
 		chunks = new HashMap<>();
 	}
@@ -78,7 +83,7 @@ public class World
 
 	public void requestChunk(Pos3 pos, Loader loader)
 	{
-		Terrain newChunk = new Terrain(pos.x, pos.y, pos.z, loader);
+		Terrain newChunk = new Terrain(noise, rand, pos.x, pos.y, pos.z, loader);
 		chunks.put(pos, newChunk);
 	}
 

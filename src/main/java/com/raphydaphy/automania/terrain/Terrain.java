@@ -11,7 +11,6 @@ import java.util.*;
 public class Terrain
 {
 	public static final int SIZE = 33;
-	public static final long SEED = 0;
 	private static final int MAX_VERTS_PER_MESH = 30000;
 
 	private final float x;
@@ -23,16 +22,19 @@ public class Terrain
 	private List<TerrainMesh> meshes;
 
 	private Map<Pos3, List<Vector3f[]>> triangles;
-	private OpenSimplexNoise noise;
 
 	public boolean received = false;
 	public boolean populated = false;
 
 	public List<TerrainMeshData> meshesUnprocessed = null;
 
-	public Terrain(int gridX, int gridY, int gridZ, Loader loader)
+	private OpenSimplexNoise noise;
+	private Random rand = new Random(0);
+
+	public Terrain(OpenSimplexNoise noise, Random rand, int gridX, int gridY, int gridZ, Loader loader)
 	{
-		noise = new OpenSimplexNoise(SEED);
+		this.noise = noise;
+		//this.rand = rand;
 
 		this.x = gridX * (SIZE - 1);
 		this.y = gridY * (SIZE - 1);
@@ -67,7 +69,7 @@ public class Terrain
 		this.meshes = meshes;
 	}
 
-	private float getDensity(int x, int y, int z, int octaves, float scale, float persistance, float lacunarity, Vector3f[] octaveOffsets)
+	private float genDensity(int x, int y, int z, int octaves, float scale, float persistance, float lacunarity, Vector3f[] octaveOffsets)
 	{
 		float density = -y / 2f + 10f;
 		float halfSize = SIZE / 2f;
@@ -125,7 +127,6 @@ public class Terrain
 
 	private Vector3f[] generateOctaveOffsets(int octaves, float persistance, Vector3f offset)
 	{
-		Random rand = new Random(SEED);
 		Vector3f[] octaveOffsets = new Vector3f[octaves];
 
 		float maxHeight = 0;
@@ -164,7 +165,7 @@ public class Terrain
 				{
 					for (int z = 0; z < SIZE; z++)
 					{
-						float density = getDensity(x, y, z, octaves, 250, persistance, 2.01f, octaveOffsets);
+						float density = genDensity(x, y, z, octaves, 250, persistance, 2.01f, octaveOffsets);
 
 						voxels[x + y * SIZE + z * SIZE * SIZE] = density;
 					}
