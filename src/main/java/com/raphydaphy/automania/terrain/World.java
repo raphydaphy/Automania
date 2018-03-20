@@ -83,7 +83,7 @@ public class World
 
 	public void requestChunk(Pos3 pos, Loader loader)
 	{
-		Terrain newChunk = new Terrain(noise, rand, pos.x, pos.y, pos.z, loader);
+		Terrain newChunk = new Terrain(noise, seed, pos.x, pos.y, pos.z, loader);
 		chunks.put(pos, newChunk);
 	}
 

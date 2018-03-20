@@ -40,7 +40,7 @@ public class Main
 		info.setColour(1, 1, 0);
 		int colors = loader.loadTexture("colors");
 
-		World world = new World(0, loader);
+		World world = new World(Sys.getTime(), loader);
 
 		ModelData treeData = OBJLoader.loadOBJ("tree");
 		RawModel treeRaw = loader.loadToModel(treeData.getVertices(), treeData.getUVS(), treeData.getNormals(), treeData.getIndices());

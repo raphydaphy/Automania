@@ -31,10 +31,10 @@ public class Terrain
 	private OpenSimplexNoise noise;
 	private Random rand = new Random(0);
 
-	public Terrain(OpenSimplexNoise noise, Random rand, int gridX, int gridY, int gridZ, Loader loader)
+	public Terrain(OpenSimplexNoise noise, long seed, int gridX, int gridY, int gridZ, Loader loader)
 	{
 		this.noise = noise;
-		//this.rand = rand;
+		this.rand = new Random(seed);
 
 		this.x = gridX * (SIZE - 1);
 		this.y = gridY * (SIZE - 1);
