@@ -19,7 +19,7 @@ public class Terrain
 	private final float y;
 	private final float z;
 
-	private float[] voxels;
+	private TerrainVoxel[] voxels;
 
 	private List<TerrainMesh> meshes;
 
@@ -134,7 +134,7 @@ public class Terrain
 	{
 		if (x >= 0 && y >= 0 && z >= 0 && x < SIZE && y <= SIZE && z < SIZE)
 		{
-			return voxels[x + y * SIZE + z * SIZE * SIZE];
+			return voxels[x + y * SIZE + z * SIZE * SIZE].getDensity();
 		}
 
 		System.err.println("Tried to access invalid voxel at: " + x + ", " + y + ", " + z);
@@ -146,7 +146,7 @@ public class Terrain
 	{
 		if (x >= 0 && y >= 0 && z >= 0 && x < SIZE - 1 && y < SIZE - 1 && z < SIZE - 1)
 		{
-			voxels[x + y * SIZE + z * SIZE * SIZE] = density;
+			voxels[x + y * SIZE + z * SIZE * SIZE].setDensity(density);
 			return true;
 		}
 		return false;
@@ -192,7 +192,7 @@ public class Terrain
 
 		if (voxels == null)
 		{
-			voxels = new float[SIZE * SIZE * SIZE];
+			voxels = new TerrainVoxel[SIZE * SIZE * SIZE];
 
 			final int terrainOctaves = 12;
 			final int biomeOctaves = 8;
@@ -218,7 +218,7 @@ public class Terrain
 						float alpha = Math.abs((float) MathUtils.clamp((lowerBiome.maxHeight - biomeDensity) / 16f, 0f, 1f) - 1);
 						float interpolatedDensity = MathUtils.lerp(terrainDensityLower, terrainDensityHigher, alpha);
 
-						voxels[x + y * SIZE + z * SIZE * SIZE] = interpolatedDensity;
+						voxels[x + y * SIZE + z * SIZE * SIZE] = new TerrainVoxel(interpolatedDensity, lowerBiome, alpha);
 					}
 				}
 			}

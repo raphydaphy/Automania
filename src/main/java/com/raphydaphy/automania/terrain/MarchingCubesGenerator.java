@@ -27,7 +27,7 @@ public class MarchingCubesGenerator
 		this.edgeVertex = new Vector3f[12];
 	}
 
-	public void generateMesh(float[] voxels, int width, int height, int depth, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices, Map<Pos3, List<Vector3f[]>> triangles)
+	public void generateMesh(TerrainVoxel[] voxels, int width, int height, int depth, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices, Map<Pos3, List<Vector3f[]>> triangles)
 	{
 		if (surface > 0)
 		{
@@ -54,16 +54,16 @@ public class MarchingCubesGenerator
 						int adjY = y + vertexOffset[adj][1];
 						int adjZ = z + vertexOffset[adj][2];
 
-						cube[adj] = voxels[adjX + adjY * width + adjZ * height * depth];
+						cube[adj] = voxels[adjX + adjY * width + adjZ * height * depth].getDensity();
 					}
 
-					triangles.put(new Pos3(x,y,z),marchCube(x,y,z, cube, vertices, normals, colors, indices));
+					triangles.put(new Pos3(x,y,z),marchCube(x,y,z, voxels[x + y * width + z * height * depth], cube, vertices, normals, colors, indices));
 				}
 			}
 		}
 	}
 
-	private List<Vector3f[]> marchCube(int x, int y, int z, float[] cubeIn, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices)
+	private List<Vector3f[]> marchCube(int x, int y, int z, TerrainVoxel voxelIn, float[] cubeIn, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices)
 	{
 		int flagIndex = 0;
 
@@ -129,7 +129,7 @@ public class MarchingCubesGenerator
 			normals.addAll(Arrays.asList(normal, normal, normal));
 
 			float height = (triangleVerts[0].y + triangleVerts[1].y + triangleVerts[2].y) / 3f;
-			Vector3f color = getBlendColor(height);
+			Vector3f color = getBlendColor(voxelIn, height);
 
 
 
@@ -141,11 +141,19 @@ public class MarchingCubesGenerator
 
 
 
-	private Vector3f getBlendColor(float height)
+	private Vector3f getBlendColor(TerrainVoxel voxel, float height)
 	{
-		Region region = Region.getByHeight(height);
+		Biome biome = voxel.biome;
+		Vector3f biomeA = getBlendColor(biome, height);
+		Vector3f biomeB = getBlendColor(Biome.getByID(biome.getID() + 1), height);
+		return MathUtils.lerp(biomeA, biomeB, voxel.biomeEdge);
+	}
+
+	private Vector3f getBlendColor(Biome biome,float height)
+	{
+		Biome.BiomeRegion region = biome.getRegionFromHeight(height);
 		Vector3f colorA = region.color;
-		Vector3f colorB = Region.getByID(region.getID() + 1).color;
+		Vector3f colorB = biome.getRegionFromId(region.getID() + 1).color;
 		float alpha = Math.abs((float) MathUtils.clamp((region.maxHeight - height) / 2f, 0f, 1f) - 1);
 		return MathUtils.lerp(colorA, colorB, alpha);
 	}
