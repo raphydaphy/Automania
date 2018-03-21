@@ -1,5 +1,7 @@
 package main.java.com.raphydaphy.automania.terrain;
 
+import main.java.com.raphydaphy.automania.terrain.biome.Biome;
+import main.java.com.raphydaphy.automania.terrain.biome.BiomeRegistry;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import main.java.com.raphydaphy.automania.util.Pos3;
 import org.lwjgl.util.vector.Vector3f;
@@ -145,7 +147,8 @@ public class MarchingCubesGenerator
 	{
 		Biome biome = voxel.biome;
 		Vector3f biomeA = getBlendColor(biome, height);
-		Vector3f biomeB = getBlendColor(Biome.getByID(biome.getID() + 1), height);
+		Vector3f biomeB = getBlendColor(BiomeRegistry.getByID(biome.getID() + 1), height);
+
 		return MathUtils.lerp(biomeA, biomeB, voxel.biomeEdge);
 	}
 

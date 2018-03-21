@@ -1,10 +1,11 @@
 package main.java.com.raphydaphy.automania.terrain;
 
 import main.java.com.raphydaphy.automania.renderengine.load.Loader;
+import main.java.com.raphydaphy.automania.terrain.biome.Biome;
+import main.java.com.raphydaphy.automania.terrain.biome.BiomeRegistry;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import main.java.com.raphydaphy.automania.util.OpenSimplexNoise;
 import main.java.com.raphydaphy.automania.util.Pos3;
-import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -68,30 +69,6 @@ public class Terrain
 	public void setMeshes(List<TerrainMesh> meshes)
 	{
 		this.meshes = meshes;
-	}
-
-	private float genTerrainDensity(int x, int y, int z, int octaves, float scale, float persistance, float lacunarity, Vector3f[] octaveOffsets)
-	{
-		float density = -y / 2f + 10f;
-		float halfSize = SIZE / 2f;
-		float amplitude = 2f; //  Increasing this makes the terrain more hilly
-		float frequency = 1.5f; //  This makes the terrain smoother
-
-		for (int octave = 0; octave < octaves; octave++)
-		{
-			float sampleX = (x - halfSize + octaveOffsets[octave].x) / scale * frequency;
-			float sampleY = (y - halfSize + octaveOffsets[octave].y) / scale * frequency;
-			float sampleZ = (z - halfSize + octaveOffsets[octave].z) / scale * frequency;
-
-			float noiseValue = (float)noise.eval(sampleX, sampleY, sampleZ) * 2 - 1;
-
-			density += noiseValue * amplitude;
-
-			amplitude *= persistance;
-			frequency *= lacunarity;
-		}
-
-		return density * halfSize;
 	}
 
 	private float genBiomeDensity(int x, int z, int octaves, float scale, float persistance, float lacunarity, Vector2f[] octaveOffsets)
@@ -188,17 +165,16 @@ public class Terrain
 
 	private List<TerrainMeshData> generateMeshData()
 	{
-		Vector3f offset = new Vector3f(x,y,z);
+		Vector3f offset = new Vector3f(x, y, z);
 
 		if (voxels == null)
 		{
 			voxels = new TerrainVoxel[SIZE * SIZE * SIZE];
 
-			final int terrainOctaves = 12;
-			final int biomeOctaves = 8;
+			final int biomeOctaves = 5;
 
-			Vector3f[] terrainOffsets = generateTerrainOffsets(terrainOctaves, offset);
-			Vector2f[] biomeOffsets = generateBiomeOffsets(terrainOctaves, offset);
+			Vector3f[] terrainOffsets = generateTerrainOffsets(BiomeRegistry.getHighestOctaveCount(), offset);
+			Vector2f[] biomeOffsets = generateBiomeOffsets(biomeOctaves, offset);
 
 			for (int x = 0; x < SIZE; x++)
 			{
@@ -209,11 +185,11 @@ public class Terrain
 
 						float biomeDensity = ((genBiomeDensity(x, z, biomeOctaves, 500, 0.5f, 2f, biomeOffsets) + 1) / 2f) * 100f;
 
-						Biome lowerBiome = Biome.getByHeight(biomeDensity);
-						Biome higherBiome = Biome.getByID(lowerBiome.getID() + 1);
+						Biome lowerBiome = BiomeRegistry.getByHeight(biomeDensity);
+						Biome higherBiome = BiomeRegistry.getByID(lowerBiome.getID() + 1);
 
-						float terrainDensityLower = genTerrainDensity(x, y, z, terrainOctaves, lowerBiome.noiseScale, lowerBiome.noisePersistance, lowerBiome.noiseLacunarity, terrainOffsets) * lowerBiome.heightMultiplier;
-						float terrainDensityHigher = genTerrainDensity(x, y, z, terrainOctaves, higherBiome.noiseScale, higherBiome.noisePersistance, higherBiome.noiseLacunarity, terrainOffsets) * higherBiome.heightMultiplier;
+						float terrainDensityLower = lowerBiome.genTerrainDensity(noise, x, y, z, lowerBiome.noiseOctaves, lowerBiome.noiseScale, lowerBiome.noisePersistance, lowerBiome.noiseLacunarity, lowerBiome.baseHeight, terrainOffsets) * lowerBiome.heightMultiplier;
+						float terrainDensityHigher = higherBiome.genTerrainDensity(noise, x, y, z, higherBiome.noiseOctaves, higherBiome.noiseScale, higherBiome.noisePersistance, higherBiome.noiseLacunarity, higherBiome.baseHeight, terrainOffsets) * higherBiome.heightMultiplier;
 
 						float alpha = Math.abs((float) MathUtils.clamp((lowerBiome.maxHeight - biomeDensity) / 16f, 0f, 1f) - 1);
 						float interpolatedDensity = MathUtils.lerp(terrainDensityLower, terrainDensityHigher, alpha);
@@ -287,10 +263,9 @@ public class Terrain
 			if (models.size() < mesh)
 			{
 				//models.get(mesh).updateTerrain(splitVerticesArray, splitNormalsArray, splitColorsArray, splitIndicesArray, loader);
-			}
-			else
+			} else
 			{
-				models.add(new TerrainMeshData(splitVerticesArray,  splitNormalsArray, splitColorsArray,splitIndicesArray));
+				models.add(new TerrainMeshData(splitVerticesArray, splitNormalsArray, splitColorsArray, splitIndicesArray));
 			}
 		}
 
@@ -311,7 +286,7 @@ public class Terrain
 		float xCoord = (terrainX % gridSquareSize) / gridSquareSize;
 		float zCoord = (terrainZ % gridSquareSize) / gridSquareSize;
 
-		for (int worldY = (int)y + SIZE - 1; worldY >= y; worldY--)
+		for (int worldY = (int) y + SIZE - 1; worldY >= y; worldY--)
 		{
 			float closest2D = Float.MAX_VALUE;
 			Vector3f[] closestTri2D = null;
