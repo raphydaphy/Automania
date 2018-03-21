@@ -2,6 +2,7 @@ package main.java.com.raphydaphy.automania.util;
 
 import main.java.com.raphydaphy.automania.render.Camera;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
 public class MathUtils
@@ -64,5 +65,15 @@ public class MathUtils
 		float l3 = 1.0f - l1 - l2;
 
 		return l1 * p1.y + l2 * p2.y + l3 * p3.y;
+	}
+
+	public static float lerp(float a, float b, float alpha)
+	{
+		return a + alpha * (b - a);
+	}
+
+	public static Vector3f lerp(Vector3f a, Vector3f b, float alpha)
+	{
+		return new Vector3f(lerp(a.x, b.x, alpha), lerp(a.y, b.y, alpha), lerp(a.z, b.z, alpha));
 	}
 }

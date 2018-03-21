@@ -4,6 +4,8 @@ import main.java.com.raphydaphy.automania.renderengine.load.Loader;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import main.java.com.raphydaphy.automania.util.OpenSimplexNoise;
 import main.java.com.raphydaphy.automania.util.Pos3;
+import org.lwjgl.Sys;
+import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.util.*;
@@ -68,7 +70,7 @@ public class Terrain
 		this.meshes = meshes;
 	}
 
-	private float genDensity(int x, int y, int z, int octaves, float scale, float persistance, float lacunarity, Vector3f[] octaveOffsets)
+	private float genTerrainDensity(int x, int y, int z, int octaves, float scale, float persistance, float lacunarity, Vector3f[] octaveOffsets)
 	{
 		float density = -y / 2f + 10f;
 		float halfSize = SIZE / 2f;
@@ -90,6 +92,30 @@ public class Terrain
 		}
 
 		return density * halfSize;
+	}
+
+	private float genBiomeDensity(int x, int z, int octaves, float scale, float persistance, float lacunarity, Vector2f[] octaveOffsets)
+	{
+		float density = 0;
+		float halfSize = SIZE / 2f;
+
+		float frequency = 1f;
+		float amplitude = 1f;
+
+		for (int octave = 0; octave < octaves; octave++)
+		{
+			float sampleX = (x - halfSize + octaveOffsets[octave].x) / scale * frequency;
+			float sampleZ = (z - halfSize + octaveOffsets[octave].y) / scale * frequency;
+
+			float noiseValue = (float) noise.eval(sampleX, sampleZ);
+
+			density += noiseValue * amplitude;
+
+			amplitude *= persistance;
+			frequency *= lacunarity;
+		}
+
+		return density;
 	}
 
 	public void regenerateTerrain(Loader loader)
@@ -126,11 +152,10 @@ public class Terrain
 		return false;
 	}
 
-	private Vector3f[] generateOctaveOffsets(int octaves, float persistance, Vector3f offset)
+	private Vector3f[] generateTerrainOffsets(int octaves, Vector3f offset)
 	{
 		Vector3f[] octaveOffsets = new Vector3f[octaves];
 
-		float maxHeight = 0;
 		float amplitude = 1;
 
 		for (int octave = 0; octave < octaves; octave++)
@@ -140,9 +165,21 @@ public class Terrain
 			float offsetZ = rand.nextInt(200000) - 100000 + offset.z;
 
 			octaveOffsets[octave] = new Vector3f(offsetX, offsetY, offsetZ);
+		}
 
-			maxHeight += amplitude;
-			amplitude *= persistance;
+		return octaveOffsets;
+	}
+
+	private Vector2f[] generateBiomeOffsets(int octaves, Vector3f offset)
+	{
+		Vector2f[] octaveOffsets = new Vector2f[octaves];
+
+		for (int octave = 0; octave < octaves; octave++)
+		{
+			float offsetX = rand.nextInt(200000) - 100000 + offset.x;
+			float offsetZ = rand.nextInt(200000) - 100000 + offset.z;
+
+			octaveOffsets[octave] = new Vector2f(offsetX, offsetZ);
 		}
 
 		return octaveOffsets;
@@ -152,13 +189,16 @@ public class Terrain
 	private List<TerrainMeshData> generateMeshData()
 	{
 		Vector3f offset = new Vector3f(x,y,z);
+
 		if (voxels == null)
 		{
 			voxels = new float[SIZE * SIZE * SIZE];
-			final int octaves = 12;
-			final float persistance = 0.6f;
 
-			Vector3f[] octaveOffsets = generateOctaveOffsets(octaves, persistance, offset);
+			final int terrainOctaves = 12;
+			final int biomeOctaves = 8;
+
+			Vector3f[] terrainOffsets = generateTerrainOffsets(terrainOctaves, offset);
+			Vector2f[] biomeOffsets = generateBiomeOffsets(terrainOctaves, offset);
 
 			for (int x = 0; x < SIZE; x++)
 			{
@@ -166,9 +206,19 @@ public class Terrain
 				{
 					for (int z = 0; z < SIZE; z++)
 					{
-						float density = genDensity(x, y, z, octaves, 250, persistance, 2.01f, octaveOffsets);
 
-						voxels[x + y * SIZE + z * SIZE * SIZE] = density;
+						float biomeDensity = ((genBiomeDensity(x, z, biomeOctaves, 500, 0.5f, 2f, biomeOffsets) + 1) / 2f) * 100f;
+
+						Biome lowerBiome = Biome.getByHeight(biomeDensity);
+						Biome higherBiome = Biome.getByID(lowerBiome.getID() + 1);
+
+						float terrainDensityLower = genTerrainDensity(x, y, z, terrainOctaves, lowerBiome.noiseScale, lowerBiome.noisePersistance, lowerBiome.noiseLacunarity, terrainOffsets) * lowerBiome.heightMultiplier;
+						float terrainDensityHigher = genTerrainDensity(x, y, z, terrainOctaves, higherBiome.noiseScale, higherBiome.noisePersistance, higherBiome.noiseLacunarity, terrainOffsets) * higherBiome.heightMultiplier;
+
+						float alpha = Math.abs((float) MathUtils.clamp((lowerBiome.maxHeight - biomeDensity) / 16f, 0f, 1f) - 1);
+						float interpolatedDensity = MathUtils.lerp(terrainDensityLower, terrainDensityHigher, alpha);
+
+						voxels[x + y * SIZE + z * SIZE * SIZE] = interpolatedDensity;
 					}
 				}
 			}
