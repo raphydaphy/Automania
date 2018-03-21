@@ -10,7 +10,10 @@ import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class World
@@ -24,7 +27,7 @@ public class World
 	public final Random rand;
 	public final long seed;
 
-	private float totalTimeInWorld;
+	private long lastSaveTime;
 
 	public World(long seed, Loader loader)
 	{
@@ -38,7 +41,6 @@ public class World
 
 	public void updateWorld(List<ModelTransform> trees, TexturedModel treeModel, float delta)
 	{
-		totalTimeInWorld += delta;
 
 		int processed = 0;
 		for (Terrain terrain : chunks.values())
@@ -72,8 +74,19 @@ public class World
 
 
 
-		if (totalTimeInWorld % 25 == 0)
+		if (Sys.getTime() - lastSaveTime > 100000)
 		{
+			lastSaveTime = Sys.getTime();
+			System.out.println("Saving world");
+			try
+			{
+				Files.createDirectories(Paths.get("world"));
+			}
+			catch (IOException e)
+			{
+				System.err.println("Failed to create the world directory!");
+				e.printStackTrace();
+			}
 			for (Terrain chunk : chunks.values())
 			{
 				if (chunk != null && chunk.populated)
@@ -87,8 +100,6 @@ public class World
 	private void saveChunk(Terrain chunk)
 	{
 		Pos3 coord = chunk.getGridPosition();
-
-		System.out.println("Saving chunk at " + coord.x + ", " + coord.z + "!");
 
 
 		try (PrintWriter out = new PrintWriter("world/chunk." + coord.x  + "." + coord.y + "." + coord.z + ".dat"))
