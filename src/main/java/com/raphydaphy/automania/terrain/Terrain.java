@@ -29,7 +29,7 @@ public class Terrain
 	public List<TerrainMeshData> meshesUnprocessed = null;
 
 	private OpenSimplexNoise noise;
-	private Random rand = new Random(0);
+	private Random rand;
 
 	public Terrain(OpenSimplexNoise noise, long seed, int gridX, int gridY, int gridZ, Loader loader)
 	{
@@ -40,13 +40,12 @@ public class Terrain
 		this.y = gridY * (SIZE - 1);
 		this.z = gridZ * (SIZE - 1);
 
-		new Thread(new Runnable() {
-			@Override
-			public void run()
-			{
-				meshesUnprocessed = generateMeshData();
-			}
-		}, "Terrain Generator").start();
+		new Thread(() -> meshesUnprocessed = generateMeshData(), "Terrain Generator").start();
+	}
+
+	public Pos3 getGridPosition()
+	{
+		return new Pos3((int) x / (SIZE - 1), (int) y / (SIZE - 1), (int) z / (SIZE - 1));
 	}
 
 	public float getX()
@@ -107,10 +106,12 @@ public class Terrain
 
 	public float getDensity(int x, int y, int z)
 	{
-		if (x >= 0 && y >= 0 && z >= 0 && x < SIZE - 1 && y < SIZE - 1 && z < SIZE - 1)
+		if (x >= 0 && y >= 0 && z >= 0 && x < SIZE && y <= SIZE && z < SIZE)
 		{
 			return voxels[x + y * SIZE + z * SIZE * SIZE];
 		}
+
+		System.err.println("Tried to access invalid voxel at: " + x + ", " + y + ", " + z);
 
 		return 0;
 	}

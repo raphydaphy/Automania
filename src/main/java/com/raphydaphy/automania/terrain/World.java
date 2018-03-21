@@ -6,8 +6,11 @@ import main.java.com.raphydaphy.automania.render.Transform;
 import main.java.com.raphydaphy.automania.renderengine.load.Loader;
 import main.java.com.raphydaphy.automania.util.OpenSimplexNoise;
 import main.java.com.raphydaphy.automania.util.Pos3;
+import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class World
@@ -21,6 +24,8 @@ public class World
 	public final Random rand;
 	public final long seed;
 
+	private float totalTimeInWorld;
+
 	public World(long seed, Loader loader)
 	{
 		this.loader = loader;
@@ -31,8 +36,10 @@ public class World
 		chunks = new HashMap<>();
 	}
 
-	public void updateWorld(List<ModelTransform> trees, TexturedModel treeModel)
+	public void updateWorld(List<ModelTransform> trees, TexturedModel treeModel, float delta)
 	{
+		totalTimeInWorld += delta;
+
 		int processed = 0;
 		for (Terrain terrain : chunks.values())
 		{
@@ -61,6 +68,50 @@ public class World
 				terrain.received = true;
 				processed++;
 			}
+		}
+
+
+
+		if (totalTimeInWorld % 25 == 0)
+		{
+			for (Terrain chunk : chunks.values())
+			{
+				if (chunk != null && chunk.populated)
+				{
+					new Thread(() -> saveChunk(chunk), "World Save").start();
+				}
+			}
+		}
+	}
+
+	private void saveChunk(Terrain chunk)
+	{
+		Pos3 coord = chunk.getGridPosition();
+
+		System.out.println("Saving chunk at " + coord.x + ", " + coord.z + "!");
+
+
+		try (PrintWriter out = new PrintWriter("world/chunk." + coord.x  + "." + coord.y + "." + coord.z + ".dat"))
+		{
+			for (int x = 0; x < Terrain.SIZE; x++)
+			{
+				for (int y = 0; y < Terrain.SIZE; y++)
+				{
+					for (int z = 0; z < Terrain.SIZE; z++)
+					{
+						float density = chunk.getDensity(x,y,z);
+						if (density > 0)
+						{
+							out.println("[" + x + " " + y + " " + z + "]" + " [" + chunk.getDensity(x, y, z) + "]");
+						}
+					}
+				}
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("There was an error when saving the world: ");
+			e.printStackTrace();
 		}
 	}
 

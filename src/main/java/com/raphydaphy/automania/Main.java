@@ -24,6 +24,8 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class Main
@@ -75,7 +77,7 @@ public class Main
 			camera.move();
 
 			interactionManager.update(world, player, loader, delta);
-			world.updateWorld(trees, treeModel);
+			world.updateWorld(trees, treeModel, delta);
 
 			for (Terrain terrain : world.getChunks().values())
 			{
