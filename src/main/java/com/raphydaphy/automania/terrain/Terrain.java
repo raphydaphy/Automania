@@ -143,7 +143,7 @@ public class Terrain
 		for (int octave = 0; octave < octaves; octave++)
 		{
 			float offsetX = rand.nextInt(200000) - 100000 + offset.x;
-			float offsetY = rand.nextInt(200000) - 100000 - offset.y;
+			float offsetY = rand.nextInt(200000) - 100000;
 			float offsetZ = rand.nextInt(200000) - 100000 + offset.z;
 
 			octaveOffsets[octave] = new Vector3f(offsetX, offsetY, offsetZ);

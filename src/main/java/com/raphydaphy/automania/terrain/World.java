@@ -129,7 +129,7 @@ public class World
 	public Terrain getChunkFromWorldCoords(Vector3f worldCoords)
 	{
 		// TODO: cubic chunk support
-		return getChunkFromWorldCoords(worldCoords.x, 0, worldCoords.z);
+		return getChunkFromWorldCoords(worldCoords.x, worldCoords.y, worldCoords.z);
 	}
 
 	public Terrain getChunkFromWorldCoords(float worldX, float worldY, float worldZ)

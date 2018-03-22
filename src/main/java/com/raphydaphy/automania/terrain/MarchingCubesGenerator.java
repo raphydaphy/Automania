@@ -133,8 +133,6 @@ public class MarchingCubesGenerator
 			float height = (triangleVerts[0].y + triangleVerts[1].y + triangleVerts[2].y) / 3f;
 			Vector3f color = getBlendColor(voxelIn, worldY + height);
 
-
-
 			colors.addAll(Arrays.asList(color, color, color));
 		}
 
