@@ -29,7 +29,7 @@ public class MarchingCubesGenerator
 		this.edgeVertex = new Vector3f[12];
 	}
 
-	public void generateMesh(TerrainVoxel[] voxels, int width, int height, int depth, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices, Map<Pos3, List<Vector3f[]>> triangles)
+	public void generateMesh(TerrainVoxel[] voxels, int width, int height, int depth, int worldY, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices, Map<Pos3, List<Vector3f[]>> triangles)
 	{
 		if (surface > 0)
 		{
@@ -59,13 +59,13 @@ public class MarchingCubesGenerator
 						cube[adj] = voxels[adjX + adjY * width + adjZ * height * depth].getDensity();
 					}
 
-					triangles.put(new Pos3(x,y,z),marchCube(x,y,z, voxels[x + y * width + z * height * depth], cube, vertices, normals, colors, indices));
+					triangles.put(new Pos3(x,y,z),marchCube(x,y,z, worldY, voxels[x + y * width + z * height * depth], cube, vertices, normals, colors, indices));
 				}
 			}
 		}
 	}
 
-	private List<Vector3f[]> marchCube(int x, int y, int z, TerrainVoxel voxelIn, float[] cubeIn, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices)
+	private List<Vector3f[]> marchCube(int x, int y, int z, int worldY, TerrainVoxel voxelIn, float[] cubeIn, List<Vector3f> vertices, List<Vector3f> normals, List<Vector3f> colors, List<Integer> indices)
 	{
 		int flagIndex = 0;
 
@@ -131,7 +131,7 @@ public class MarchingCubesGenerator
 			normals.addAll(Arrays.asList(normal, normal, normal));
 
 			float height = (triangleVerts[0].y + triangleVerts[1].y + triangleVerts[2].y) / 3f;
-			Vector3f color = getBlendColor(voxelIn, height);
+			Vector3f color = getBlendColor(voxelIn, worldY + height);
 
 
 

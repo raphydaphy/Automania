@@ -17,6 +17,7 @@ import main.java.com.raphydaphy.automania.renderengine.renderer.FontRenderManage
 import main.java.com.raphydaphy.automania.renderengine.renderer.RenderManager;
 import main.java.com.raphydaphy.automania.renderengine.shader.Material;
 import main.java.com.raphydaphy.automania.terrain.*;
+import main.java.com.raphydaphy.automania.terrain.biome.BiomeRegistry;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -68,6 +69,8 @@ public class Main
 		RenderManager renderer = new RenderManager(camera);
 
 		InteractionManager interactionManager = new InteractionManager(camera, renderer.getProjectionMatrix());
+
+		BiomeRegistry.init();
 
 		while (!Display.isCloseRequested())
 		{

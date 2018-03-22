@@ -55,8 +55,9 @@ public class InteractionManager
 				int modifyX = (int) player.data.getTransform().getPosition().x;
 				int modifyZ = (int) player.data.getTransform().getPosition().z;
 
-				Terrain terrain = world.getChunkFromWorldCoords(modifyX, player.data.getTransform().getPosition().y, modifyZ);
-
+				// TODO: cubic chunk support
+				//Terrain terrain = world.getChunkFromWorldCoords(modifyX, player.data.getTransform().getPosition().y, modifyZ);
+				Terrain terrain = world.getChunkFromWorldCoords(modifyX, 0, modifyZ);
 				if (terrain != null && terrain.received)
 				{
 					modifyX = modifyX % (Terrain.SIZE - 1);

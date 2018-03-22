@@ -68,7 +68,7 @@ public class TerrainRenderer
     private void loadModelMatrix(Terrain terrain)
     {
         // Generate a transformation matrix based on the transform position, rotation and scale
-        Matrix4f transformationMatrix = MathUtils.createTransformationMatrix(new Vector3f(terrain.getX(), 0, terrain.getZ()), 0, 0, 0, 1);
+        Matrix4f transformationMatrix = MathUtils.createTransformationMatrix(new Vector3f(terrain.getX(), terrain.getY(), terrain.getZ()), 0, 0, 0, 1);
         shader.loadTransformationMatrix(transformationMatrix);
     }
 }

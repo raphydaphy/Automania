@@ -1,5 +1,7 @@
 package main.java.com.raphydaphy.automania.terrain;
 
+import main.java.com.raphydaphy.automania.terrain.biome.Biome;
+
 public class TerrainVoxel
 {
 	private float density;

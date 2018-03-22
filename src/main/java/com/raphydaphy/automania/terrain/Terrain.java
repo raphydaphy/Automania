@@ -34,7 +34,7 @@ public class Terrain
 	private OpenSimplexNoise noise;
 	private Random rand;
 
-	public Terrain(OpenSimplexNoise noise, long seed, int gridX, int gridY, int gridZ, Loader loader)
+	public Terrain(OpenSimplexNoise noise, long seed, int gridX, int gridY, int gridZ)
 	{
 		this.noise = noise;
 		this.rand = new Random(seed);
@@ -54,6 +54,11 @@ public class Terrain
 	public float getX()
 	{
 		return x;
+	}
+
+	public float getY()
+	{
+		return y;
 	}
 
 	public float getZ()
@@ -188,8 +193,8 @@ public class Terrain
 						Biome lowerBiome = BiomeRegistry.getByHeight(biomeDensity);
 						Biome higherBiome = BiomeRegistry.getByID(lowerBiome.getID() + 1);
 
-						float terrainDensityLower = lowerBiome.genTerrainDensity(noise, x, y, z, lowerBiome.noiseOctaves, lowerBiome.noiseScale, lowerBiome.noisePersistance, lowerBiome.noiseLacunarity, lowerBiome.baseHeight, terrainOffsets) * lowerBiome.heightMultiplier;
-						float terrainDensityHigher = higherBiome.genTerrainDensity(noise, x, y, z, higherBiome.noiseOctaves, higherBiome.noiseScale, higherBiome.noisePersistance, higherBiome.noiseLacunarity, higherBiome.baseHeight, terrainOffsets) * higherBiome.heightMultiplier;
+						float terrainDensityLower = lowerBiome.genTerrainDensity(noise, x, (int)this.y + y, z, lowerBiome.noiseOctaves, lowerBiome.noiseScale, lowerBiome.noisePersistance, lowerBiome.noiseLacunarity, lowerBiome.baseHeight, terrainOffsets) * lowerBiome.heightMultiplier;
+						float terrainDensityHigher = higherBiome.genTerrainDensity(noise, x, (int)this.y + y, z, higherBiome.noiseOctaves, higherBiome.noiseScale, higherBiome.noisePersistance, higherBiome.noiseLacunarity, higherBiome.baseHeight, terrainOffsets) * higherBiome.heightMultiplier;
 
 						float alpha = Math.abs((float) MathUtils.clamp((lowerBiome.maxHeight - biomeDensity) / 16f, 0f, 1f) - 1);
 						float interpolatedDensity = MathUtils.lerp(terrainDensityLower, terrainDensityHigher, alpha);
@@ -208,7 +213,7 @@ public class Terrain
 
 		// triangles should have SIZE - 1 ^ 3 entries in it, one for every voxel except the last x, y and z rows
 		triangles = new HashMap<>();
-		generator.generateMesh(voxels, SIZE, SIZE, SIZE, vertices, normals, colors, indices, triangles);
+		generator.generateMesh(voxels, SIZE, SIZE, SIZE, (int)this.y, vertices, normals, colors, indices, triangles);
 
 		int numMeshes = vertices.size() / MAX_VERTS_PER_MESH + 1;
 
