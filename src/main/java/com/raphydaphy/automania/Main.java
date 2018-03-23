@@ -16,6 +16,9 @@ import main.java.com.raphydaphy.automania.renderengine.load.OBJLoader;
 import main.java.com.raphydaphy.automania.renderengine.renderer.FontRenderManager;
 import main.java.com.raphydaphy.automania.renderengine.renderer.RenderManager;
 import main.java.com.raphydaphy.automania.renderengine.shader.Material;
+import main.java.com.raphydaphy.automania.state.LoadingState;
+import main.java.com.raphydaphy.automania.state.Resources;
+import main.java.com.raphydaphy.automania.state.State;
 import main.java.com.raphydaphy.automania.terrain.*;
 import main.java.com.raphydaphy.automania.terrain.biome.BiomeRegistry;
 import org.lwjgl.Sys;
@@ -35,80 +38,34 @@ public class Main
 	{
 		DisplayManager.createDisplay("Automania");
 
-		Loader loader = new Loader();
-		FontRenderManager.init(loader);
+		Resources.init();
+		FontRenderManager.init(Resources.loader);
 
-		FontType arial = new FontType(loader.loadTextureExact("src/main/resources/fonts/arial.png", 0), new File("src/main/resources/fonts/arial.fnt"));
-		GUIText info = new GUIText("Automania Alpha",2.5f, arial, new Vector2f(0, 0), 1f,  true);
-		info.setColour(1, 1, 0);
-		int colors = loader.loadTexture("colors");
-
-		World world = new World(Sys.getTime(), loader);
-
-		ModelData treeData = OBJLoader.loadOBJ("tree");
-		RawModel treeRaw = loader.loadToModel(treeData.getVertices(), treeData.getUVS(), treeData.getNormals(), treeData.getIndices());
-		Material treeMaterial = new Material(colors);
-		TexturedModel treeModel = new TexturedModel(treeRaw, treeMaterial);
-		List<ModelTransform> trees = new ArrayList<>();
-
-		ModelData playerData = OBJLoader.loadOBJ("person");
-		RawModel playerRaw = loader.loadToModel(playerData.getVertices(), playerData.getUVS(), playerData.getNormals(), playerData.getIndices());
-		TexturedModel playerModel = new TexturedModel(playerRaw, new Material(colors));
-		Player player = new Player(playerModel, new Vector3f(0, 0, 0), 0, 180, 0, 0.75f);
-
-		List<Light> lights = new ArrayList<>();
-
-		float sunBrightness = 0.8f;
-		Light sun = new Light(new Vector3f(50000, 100000, 100000), new Vector3f(sunBrightness, sunBrightness, sunBrightness));
-		lights.add(sun);
-		lights.add(new Light(new Vector3f(0, 35, 0), new Vector3f(1, 1, 1), new Vector3f(1f, 0.01f, 0.002f)));
-		lights.add(new Light(new Vector3f(-300, 35, -300), new Vector3f(1, 1, 1), new Vector3f(1f, 0.01f, 0.002f)));
-		lights.add(new Light(new Vector3f(-300, 35, -450), new Vector3f(1, 1, 1), new Vector3f(1f, 0.01f, 0.002f)));
-
-		Camera camera = new Camera(player);
-		RenderManager renderer = new RenderManager(camera);
-
-		InteractionManager interactionManager = new InteractionManager(camera, renderer.getProjectionMatrix());
+		World world = new World(Sys.getTime(), Resources.loader);
 
 		BiomeRegistry.init();
 
+		State state = new LoadingState().bind();
+		State nextState = state;
+
 		while (!Display.isCloseRequested())
 		{
-			float delta = DisplayManager.getFrameTimeSeconds();
-
-			player.move(world, delta);
-			camera.move();
-
-			interactionManager.update(world, player, loader, delta);
-			world.updateWorld(trees, treeModel, delta);
-
-			for (Terrain terrain : world.getChunks().values())
+			if (state != nextState)
 			{
-				if (terrain.received)
-				{
-					renderer.processTerrain(terrain);
-				}
+				state.unbind();
+				nextState.bind();
+
+				state = nextState;
 			}
-			renderer.processSimilarObjects(trees);
 
-			renderer.processObject(player.data);
-
-			renderer.renderShadowMap(sun);
-			renderer.render(lights, camera);
-
-			FontRenderManager.render();
+			nextState = state.update(world);
 
 			DisplayManager.updateDisplay();
-
-			if (DisplayManager.hasResized)
-			{
-				renderer.recalculateProjection();
-			}
 		}
 
-		renderer.cleanup();
+		state.unbind();
 		FontRenderManager.cleanup();
-		loader.cleanup();
+		Resources.loader.cleanup();
 		DisplayManager.closeDisplay();
 	}
 }

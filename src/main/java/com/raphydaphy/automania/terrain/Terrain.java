@@ -167,6 +167,22 @@ public class Terrain
 		return octaveOffsets;
 	}
 
+	public boolean processMesh(Loader loader)
+	{
+		if (!received && meshesUnprocessed != null)
+		{
+			List<TerrainMesh> meshes = new ArrayList<>();
+			for (TerrainMeshData meshData : meshesUnprocessed)
+			{
+				meshes.add(meshData.generateMesh(loader));
+			}
+			setMeshes(meshes);
+			received = true;
+
+			return true;
+		}
+		return false;
+	}
 
 	private List<TerrainMeshData> generateMeshData()
 	{

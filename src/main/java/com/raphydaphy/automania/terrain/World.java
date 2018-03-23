@@ -59,20 +59,14 @@ public class World
 					}
 				}
 				terrain.populated = true;
-			} else if (processed < World.MAX_TERRAINS_PER_FRAME && !terrain.received && terrain.meshesUnprocessed != null)
+			} else if (processed < World.MAX_TERRAINS_PER_FRAME)
 			{
-				List<TerrainMesh> meshes = new ArrayList<>();
-				for (TerrainMeshData meshData : terrain.meshesUnprocessed)
+				if (terrain.processMesh(loader))
 				{
-					meshes.add(meshData.generateMesh(loader));
+					processed++;
 				}
-				terrain.setMeshes(meshes);
-				terrain.received = true;
-				processed++;
 			}
 		}
-
-
 
 		if (Sys.getTime() - lastSaveTime > 100000)
 		{
