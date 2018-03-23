@@ -8,11 +8,10 @@ import main.java.com.raphydaphy.automania.render.Camera;
 import main.java.com.raphydaphy.automania.render.Light;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.renderengine.DisplayManager;
-import main.java.com.raphydaphy.automania.renderengine.load.Loader;
 import main.java.com.raphydaphy.automania.renderengine.load.ModelData;
 import main.java.com.raphydaphy.automania.renderengine.load.OBJLoader;
 import main.java.com.raphydaphy.automania.renderengine.renderer.FontRenderManager;
-import main.java.com.raphydaphy.automania.renderengine.renderer.RenderManager;
+import main.java.com.raphydaphy.automania.renderengine.renderer.WorldRenderManager;
 import main.java.com.raphydaphy.automania.renderengine.shader.Material;
 import main.java.com.raphydaphy.automania.terrain.InteractionManager;
 import main.java.com.raphydaphy.automania.terrain.Terrain;
@@ -32,7 +31,7 @@ public class GameState extends State
 	private Light sun;
 
 	private Camera camera;
-	private RenderManager renderer;
+	private WorldRenderManager renderer;
 	private InteractionManager interactionManager;
 
 	private Player player;
@@ -41,6 +40,7 @@ public class GameState extends State
 	@Override
 	public State update(World world)
 	{
+		super.update(world);
 		float delta = DisplayManager.getFrameTimeSeconds();
 
 		player.move(world, delta);
@@ -64,11 +64,6 @@ public class GameState extends State
 		renderer.render(lights, camera);
 
 		FontRenderManager.render();
-
-		if (DisplayManager.hasResized)
-		{
-			renderer.recalculateProjection();
-		}
 
 		return this;
 	}
@@ -98,7 +93,7 @@ public class GameState extends State
 
 		camera = new Camera(player);
 
-		renderer = new RenderManager(camera);
+		renderer = new WorldRenderManager(camera);
 		interactionManager = new InteractionManager(camera, renderer.getProjectionMatrix());
 
 		title = new GUIText("Automania Alpha",2.5f, Resources.arial, new Vector2f(0, 0), 1f,  true);
@@ -112,5 +107,12 @@ public class GameState extends State
 	{
 		title.remove();
 		renderer.cleanup();
+	}
+
+	@Override
+	protected void handleResize()
+	{
+		super.handleResize();
+		renderer.recalculateProjection();
 	}
 }

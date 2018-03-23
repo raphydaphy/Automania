@@ -4,6 +4,7 @@ import main.java.com.raphydaphy.automania.font.GUIText;
 import main.java.com.raphydaphy.automania.renderengine.renderer.FontRenderManager;
 import main.java.com.raphydaphy.automania.terrain.Terrain;
 import main.java.com.raphydaphy.automania.terrain.World;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -15,6 +16,8 @@ public class LoadingState extends State
 	@Override
 	public State update(World world)
 	{
+		super.update(world);
+
 		loaded = true;
 
 		world.updateVisibleChunks(new Vector3f(0,0,0));
@@ -27,6 +30,10 @@ public class LoadingState extends State
 				loaded = false;
 			}
 		}
+
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glClearColor(0.5f, 0.5f, 0.5f, 1);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
 		FontRenderManager.render();
 

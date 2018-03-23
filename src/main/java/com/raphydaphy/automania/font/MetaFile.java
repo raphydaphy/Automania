@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import main.java.com.raphydaphy.automania.renderengine.DisplayManager;
 import org.lwjgl.opengl.Display;
 
 /**
@@ -36,8 +37,9 @@ public class MetaFile
 	private int paddingWidth;
 	private int paddingHeight;
 
-	private Map<Integer, Character> metaData = new HashMap<Integer, Character>();
+	private Map<Integer, Character> metaData = new HashMap<>();
 
+	private File file;
 	private BufferedReader reader;
 	private Map<String, String> values = new HashMap<String, String>();
 
@@ -47,6 +49,12 @@ public class MetaFile
 	 * @param file - the font file.
 	 */
 	protected MetaFile(File file)
+	{
+		this.file = file;
+		resize();
+	}
+
+	protected void resize()
 	{
 		this.aspectRatio = (double) Display.getWidth() / (double) Display.getHeight();
 		openFile(file);
@@ -190,6 +198,7 @@ public class MetaFile
 	 */
 	private void loadCharacterData(int imageWidth)
 	{
+		metaData.clear();
 		processNextLine();
 		processNextLine();
 		while (processNextLine())

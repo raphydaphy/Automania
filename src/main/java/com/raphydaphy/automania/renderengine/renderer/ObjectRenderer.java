@@ -65,7 +65,7 @@ public class ObjectRenderer
         // Disable culling if we are rendering a transparent texture to ensure that all faces are rendered
         if (texture.isTransparent())
         {
-            RenderManager.disableCulling();
+            WorldRenderManager.disableCulling();
         }
 
         // Bind the texture to the sampler with id #0
@@ -76,7 +76,7 @@ public class ObjectRenderer
     private void unbindModel()
     {
         // Re-enable culling in case it was disabled this batch
-        RenderManager.enableCulling();
+        WorldRenderManager.enableCulling();
 
         // Unbind everything to prevent it being accidently modified
         GL20.glDisableVertexAttribArray(0);

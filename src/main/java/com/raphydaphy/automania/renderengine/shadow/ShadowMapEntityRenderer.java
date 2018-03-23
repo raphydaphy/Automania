@@ -6,7 +6,7 @@ import java.util.Map;
 import main.java.com.raphydaphy.automania.models.RawModel;
 import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
-import main.java.com.raphydaphy.automania.renderengine.renderer.RenderManager;
+import main.java.com.raphydaphy.automania.renderengine.renderer.WorldRenderManager;
 import main.java.com.raphydaphy.automania.renderengine.shader.ShadowShader;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import org.lwjgl.opengl.GL11;
@@ -49,7 +49,7 @@ public class ShadowMapEntityRenderer
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.getTexture().getID());
 			if (model.getTexture().isTransparent())
 			{
-				RenderManager.disableCulling();
+				WorldRenderManager.disableCulling();
 			}
 			for (ModelTransform modelTransform : objects.get(model))
 			{
@@ -58,7 +58,7 @@ public class ShadowMapEntityRenderer
 			}
 			if (model.getTexture().isTransparent())
 			{
-				RenderManager.enableCulling();
+				WorldRenderManager.enableCulling();
 			}
 		}
 		GL20.glDisableVertexAttribArray(0);

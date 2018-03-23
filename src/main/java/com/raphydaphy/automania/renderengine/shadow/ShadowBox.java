@@ -1,7 +1,7 @@
 package main.java.com.raphydaphy.automania.renderengine.shadow;
 
 import main.java.com.raphydaphy.automania.render.Camera;
-import main.java.com.raphydaphy.automania.renderengine.renderer.RenderManager;
+import main.java.com.raphydaphy.automania.renderengine.renderer.WorldRenderManager;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
@@ -67,7 +67,7 @@ public class ShadowBox
 		Vector3f toFar = new Vector3f(forwardVector);
 		toFar.scale(SHADOW_DISTANCE);
 		Vector3f toNear = new Vector3f(forwardVector);
-		toNear.scale(RenderManager.NEAR_PLANE);
+		toNear.scale(WorldRenderManager.NEAR_PLANE);
 		Vector3f centerNear = Vector3f.add(toNear, cam.getPosition(), null);
 		Vector3f centerFar = Vector3f.add(toFar, cam.getPosition(), null);
 
@@ -225,8 +225,8 @@ public class ShadowBox
 	 */
 	private void calculateWidthsAndHeights()
 	{
-		farWidth = (float) (SHADOW_DISTANCE * Math.tan(Math.toRadians(RenderManager.FOV)));
-		nearWidth = (float) (RenderManager.NEAR_PLANE * Math.tan(Math.toRadians(RenderManager.FOV)));
+		farWidth = (float) (SHADOW_DISTANCE * Math.tan(Math.toRadians(WorldRenderManager.FOV)));
+		nearWidth = (float) (WorldRenderManager.NEAR_PLANE * Math.tan(Math.toRadians(WorldRenderManager.FOV)));
 		farHeight = farWidth / getAspectRatio();
 		nearHeight = nearWidth / getAspectRatio();
 	}

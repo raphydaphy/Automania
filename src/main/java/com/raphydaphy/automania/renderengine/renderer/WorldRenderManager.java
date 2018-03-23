@@ -16,7 +16,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import java.util.*;
 
-public class RenderManager
+public class WorldRenderManager
 {
     public static final float FOV = 70f;
 	public static final float NEAR_PLANE = 0.1f;
@@ -36,7 +36,7 @@ public class RenderManager
     private Map<TexturedModel, List<ModelTransform>> objects = new HashMap<>();
     private List<Terrain> terrains = new ArrayList<>();
 
-    public RenderManager(Camera camera)
+    public WorldRenderManager(Camera camera)
     {
         enableCulling();
         initProjection();

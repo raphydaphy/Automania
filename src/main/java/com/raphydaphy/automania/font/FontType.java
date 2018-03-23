@@ -28,6 +28,11 @@ public class FontType
 		this.loader = new TextMeshCreator(fontFile);
 	}
 
+	public void resize()
+	{
+		loader.resize();
+	}
+
 	/**
 	 * @return The font texture atlas.
 	 */
