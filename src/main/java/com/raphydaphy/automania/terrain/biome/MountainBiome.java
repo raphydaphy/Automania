@@ -29,6 +29,6 @@ public class MountainBiome extends Biome
 	@Override
 	protected float getBaseDensity(int x, int y, int z)
 	{
-		return -y / 2f + baseHeight + 5 * (y / 20f);
+		return -y / 2f + baseHeight + 5 * (y / 15f);
 	}
 }

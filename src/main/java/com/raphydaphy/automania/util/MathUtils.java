@@ -2,7 +2,7 @@ package main.java.com.raphydaphy.automania.util;
 
 import main.java.com.raphydaphy.automania.render.Camera;
 import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
+import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector3f;
 
 public class MathUtils
@@ -67,13 +67,74 @@ public class MathUtils
 		return l1 * p1.y + l2 * p2.y + l3 * p3.y;
 	}
 
-	public static float lerp(float a, float b, float alpha)
+	public static float interpolate(float a, float b, float alpha)
 	{
 		return a + alpha * (b - a);
 	}
 
-	public static Vector3f lerp(Vector3f a, Vector3f b, float alpha)
+	public static Vector3f interpolate(Vector3f a, Vector3f b, float alpha)
 	{
-		return new Vector3f(lerp(a.x, b.x, alpha), lerp(a.y, b.y, alpha), lerp(a.z, b.z, alpha));
+		return new Vector3f(interpolate(a.x, b.x, alpha), interpolate(a.y, b.y, alpha), interpolate(a.z, b.z, alpha));
+	}
+
+	public static Quaternion interpolate(Quaternion a, Quaternion b, float alpha)
+	{
+		Quaternion result = new Quaternion(0, 0, 0, 1);
+		float dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+		float blendI = 1f - alpha;
+		if (dot < 0) {
+			result.w = blendI * a.w + alpha * -b.w;
+			result.x = blendI * a.x + alpha * -b.x;
+			result.y = blendI * a.y + alpha * -b.y;
+			result.z = blendI * a.z + alpha * -b.z;
+		} else {
+			result.w = blendI * a.w + alpha * b.w;
+			result.x = blendI * a.x + alpha * b.x;
+			result.y = blendI * a.y + alpha * b.y;
+			result.z = blendI * a.z + alpha * b.z;
+		}
+		normalizeQuat(result);
+		return result;
+	}
+
+	public static Matrix4f quatToMatrix(Quaternion quat) {
+		Matrix4f matrix = new Matrix4f();
+
+		final float xy = quat.x * quat.y;
+		final float xz = quat.x * quat.z;
+		final float xw = quat.x * quat.w;
+		final float yz = quat.y * quat.z;
+		final float yw = quat.y * quat.w;
+		final float zw = quat.z * quat.w;
+		final float xSquared = quat.x * quat.x;
+		final float ySquared = quat.y * quat.y;
+		final float zSquared = quat.z * quat.z;
+
+		matrix.m00 = 1 - 2 * (ySquared + zSquared);
+		matrix.m01 = 2 * (xy - zw);
+		matrix.m02 = 2 * (xz + yw);
+		matrix.m03 = 0;
+		matrix.m10 = 2 * (xy + zw);
+		matrix.m11 = 1 - 2 * (xSquared + zSquared);
+		matrix.m12 = 2 * (yz - xw);
+		matrix.m13 = 0;
+		matrix.m20 = 2 * (xz - yw);
+		matrix.m21 = 2 * (yz + xw);
+		matrix.m22 = 1 - 2 * (xSquared + ySquared);
+		matrix.m23 = 0;
+		matrix.m30 = 0;
+		matrix.m31 = 0;
+		matrix.m32 = 0;
+		matrix.m33 = 1;
+
+		return matrix;
+	}
+
+	public static void normalizeQuat(Quaternion quat) {
+		float mag = (float) Math.sqrt(quat.w * quat.w + quat.x * quat.x + quat.y * quat.y + quat.z * quat.z);
+		quat.w /= mag;
+		quat.x /= mag;
+		quat.y /= mag;
+		quat.z /= mag;
 	}
 }

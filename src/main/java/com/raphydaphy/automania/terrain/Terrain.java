@@ -197,7 +197,7 @@ public class Terrain
 						float terrainDensityHigher = higherBiome.genTerrainDensity(noise, x, (int)this.y + y, z, higherBiome.noiseOctaves, higherBiome.noiseScale, higherBiome.noisePersistance, higherBiome.noiseLacunarity, higherBiome.baseHeight, terrainOffsets) * higherBiome.heightMultiplier;
 
 						float alpha = Math.abs((float) MathUtils.clamp((lowerBiome.maxHeight - biomeDensity) / 16f, 0f, 1f) - 1);
-						float interpolatedDensity = MathUtils.lerp(terrainDensityLower, terrainDensityHigher, alpha);
+						float interpolatedDensity = MathUtils.interpolate(terrainDensityLower, terrainDensityHigher, alpha);
 
 						voxels[x + y * SIZE + z * SIZE * SIZE] = new TerrainVoxel(interpolatedDensity, lowerBiome, alpha);
 					}

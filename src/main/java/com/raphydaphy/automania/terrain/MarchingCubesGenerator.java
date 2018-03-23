@@ -147,7 +147,7 @@ public class MarchingCubesGenerator
 		Vector3f biomeA = getBlendColor(biome, height);
 		Vector3f biomeB = getBlendColor(BiomeRegistry.getByID(biome.getID() + 1), height);
 
-		return MathUtils.lerp(biomeA, biomeB, voxel.biomeEdge);
+		return MathUtils.interpolate(biomeA, biomeB, voxel.biomeEdge);
 	}
 
 	private Vector3f getBlendColor(Biome biome,float height)
@@ -156,7 +156,7 @@ public class MarchingCubesGenerator
 		Vector3f colorA = region.color;
 		Vector3f colorB = biome.getRegionFromId(region.getID() + 1).color;
 		float alpha = Math.abs((float) MathUtils.clamp((region.maxHeight - height) / 2f, 0f, 1f) - 1);
-		return MathUtils.lerp(colorA, colorB, alpha);
+		return MathUtils.interpolate(colorA, colorB, alpha);
 	}
 
 	private float getOffset(float v1, float v2)
