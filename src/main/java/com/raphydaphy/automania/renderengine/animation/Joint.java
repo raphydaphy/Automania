@@ -27,4 +27,30 @@ public class Joint
 	{
 		children.add(child);
 	}
+
+	public Matrix4f getAnimatedTransform()
+	{
+		return animatedTransform;
+	}
+
+	public void setAnimatedTransform(Matrix4f animatedTransform)
+	{
+		this.animatedTransform = animatedTransform;
+	}
+
+	public Matrix4f getInverseBindTransform()
+	{
+		return inverseBindTransform;
+	}
+
+	protected void calculateInverseBindTransform(Matrix4f parentBindTransform)
+	{
+		Matrix4f bindTransform = Matrix4f.mul(parentBindTransform, localBindTrasnform, null);
+		Matrix4f.invert(bindTransform, inverseBindTransform);
+
+		for (Joint joint : children)
+		{
+			joint.calculateInverseBindTransform(bindTransform);
+		}
+	}
 }
