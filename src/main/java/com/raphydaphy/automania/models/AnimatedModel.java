@@ -1,20 +1,24 @@
-package main.java.com.raphydaphy.automania.renderengine.animation;
+package main.java.com.raphydaphy.automania.models;
 
+import main.java.com.raphydaphy.automania.renderengine.animation.Animation;
+import main.java.com.raphydaphy.automania.renderengine.animation.Animator;
+import main.java.com.raphydaphy.automania.renderengine.animation.Joint;
 import main.java.com.raphydaphy.automania.renderengine.load.Texture;
+import main.java.com.raphydaphy.automania.renderengine.shader.Material;
 import main.java.com.raphydaphy.automania.util.VertexArray;
 import org.lwjgl.util.vector.Matrix4f;
 
-public class AnimatedModel
+public class AnimatedModel implements IModel
 {
 	public final Joint root;
 	public final int joints;
 
-	private final VertexArray vao;
-	private final Texture texture;
+	public final VertexArray vao;
+	public final Material texture;
 
 	private final Animator animator;
 
-	public AnimatedModel(VertexArray vao, Texture texture, Joint root, int joints, Animator animator)
+	public AnimatedModel(VertexArray vao, Material texture, Joint root, int joints, Animator animator)
 	{
 		this.root = root;
 		this.joints = joints;
@@ -57,5 +61,29 @@ public class AnimatedModel
 		{
 			addJoints(joint, jointMatrices);
 		}
+	}
+
+	@Override
+	public int getVAOID()
+	{
+		return vao.id;
+	}
+
+	@Override
+	public int getVertexCount()
+	{
+		return vao.getIndicesLength();
+	}
+
+	@Override
+	public int[] getAttribArrays()
+	{
+		return new int[] { 0, 1, 2, 3, 4 };
+	}
+
+	@Override
+	public Material getTexture()
+	{
+		return texture;
 	}
 }

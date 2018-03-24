@@ -3,8 +3,7 @@ package main.java.com.raphydaphy.automania.renderengine.shadow;
 import java.util.List;
 import java.util.Map;
 
-import main.java.com.raphydaphy.automania.models.RawModel;
-import main.java.com.raphydaphy.automania.models.TexturedModel;
+import main.java.com.raphydaphy.automania.models.IModel;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.renderengine.renderer.WorldRenderManager;
 import main.java.com.raphydaphy.automania.renderengine.shader.ShadowShader;
@@ -39,14 +38,15 @@ public class ShadowMapEntityRenderer
 	 *
 	 * @param objects - the entities to be rendered to the shadow map.
 	 */
-	protected void render(Map<TexturedModel, List<ModelTransform>> objects)
+	protected void render(Map<IModel, List<ModelTransform>> objects)
 	{
-		for (TexturedModel model : objects.keySet())
+		for (IModel model : objects.keySet())
 		{
-			RawModel rawModel = model.getRawModel();
-			bindModel(rawModel);
+			bindModel(model);
+
 			GL13.glActiveTexture(GL13.GL_TEXTURE0);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.getTexture().getID());
+
 			if (model.getTexture().isTransparent())
 			{
 				WorldRenderManager.disableCulling();
@@ -54,32 +54,34 @@ public class ShadowMapEntityRenderer
 			for (ModelTransform modelTransform : objects.get(model))
 			{
 				prepareInstance(modelTransform);
-				GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+				GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
 			}
 			if (model.getTexture().isTransparent())
 			{
 				WorldRenderManager.enableCulling();
 			}
+
+			unbindModel(model);
 		}
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(2);
-		GL30.glBindVertexArray(0);
 	}
 
-	/**
-	 * Binds a raw model before rendering. Only the attribute 0 is enabled here
-	 * because that is where the positions are stored in the VAO, and only the
-	 * positions are required in the vertex shader.
-	 *
-	 * @param rawModel - the model to be bound.
-	 */
-	private void bindModel(RawModel rawModel)
+	private void bindModel(IModel model)
 	{
-		GL30.glBindVertexArray(rawModel.getVAOID());
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(2);
+		GL30.glBindVertexArray(model.getVAOID());
+		for (int attribArray : model.getAttribArrays())
+		{
+			GL20.glEnableVertexAttribArray(attribArray);
+		}
 	}
 
+	private void unbindModel(IModel model)
+	{
+		GL30.glBindVertexArray(0);
+		for (int attribArray : model.getAttribArrays())
+		{
+			GL20.glDisableVertexAttribArray(attribArray);
+		}
+	}
 	/**
 	 * Prepares an entity to be rendered. The model matrix is created in the
 	 * usual way and then multiplied with the projection and view matrix (often

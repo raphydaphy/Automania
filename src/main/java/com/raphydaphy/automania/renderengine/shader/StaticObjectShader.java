@@ -1,11 +1,11 @@
 package main.java.com.raphydaphy.automania.renderengine.shader;
 
-public class ObjectShader extends WorldShader
+public class StaticObjectShader extends WorldShader
 {
-	private static final String name = "src/main/resources/shaders/object";
+	private static final String name = "src/main/resources/shaders/static_object";
 	private int artificialLightingLocation;
 
-	public ObjectShader()
+	public StaticObjectShader()
 	{
 		super(name);
 	}

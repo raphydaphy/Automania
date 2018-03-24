@@ -1,10 +1,13 @@
 package main.java.com.raphydaphy.automania.renderengine.renderer;
 
+import main.java.com.raphydaphy.automania.models.AnimatedModel;
+import main.java.com.raphydaphy.automania.models.IModel;
 import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.render.Camera;
 import main.java.com.raphydaphy.automania.render.Light;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
-import main.java.com.raphydaphy.automania.renderengine.shader.ObjectShader;
+import main.java.com.raphydaphy.automania.renderengine.shader.AnimatedObjectShader;
+import main.java.com.raphydaphy.automania.renderengine.shader.StaticObjectShader;
 import main.java.com.raphydaphy.automania.renderengine.shader.TerrainShader;
 import main.java.com.raphydaphy.automania.renderengine.shadow.ShadowMapMasterRenderer;
 import main.java.com.raphydaphy.automania.terrain.Terrain;
@@ -24,8 +27,11 @@ public class WorldRenderManager
 
     private static final Vector3f SKY = new Vector3f(0.5f, 0.5f, 0.5f);
 
-    private ObjectShader objectShader;
-    private ObjectRenderer objectRenderer;
+    private StaticObjectShader staticObjectShader;
+    private StaticObjectRenderer staticObjectRenderer;
+
+    private AnimatedObjectShader animatedObjectShader;
+    private AnimatedObjectRenderer animatedObjectRenderer;
 
     private TerrainShader terrainShader;
     private TerrainRenderer terrainRenderer;
@@ -33,7 +39,7 @@ public class WorldRenderManager
     private ShadowMapMasterRenderer shadowMapRenderer;
 
     private Matrix4f projection;
-    private Map<TexturedModel, List<ModelTransform>> objects = new HashMap<>();
+    private Map<IModel, List<ModelTransform>> objects = new HashMap<>();
     private List<Terrain> terrains = new ArrayList<>();
 
     public WorldRenderManager(Camera camera)
@@ -41,8 +47,11 @@ public class WorldRenderManager
         enableCulling();
         initProjection();
 
-        objectShader = new ObjectShader();
-        objectRenderer = new ObjectRenderer(objectShader, projection);
+        staticObjectShader = new StaticObjectShader();
+        staticObjectRenderer = new StaticObjectRenderer(staticObjectShader, projection);
+
+        animatedObjectShader = new AnimatedObjectShader();
+        animatedObjectRenderer = new AnimatedObjectRenderer(animatedObjectShader, projection);
 
         terrainShader = new TerrainShader();
         terrainRenderer = new TerrainRenderer(terrainShader, projection);
@@ -75,9 +84,13 @@ public class WorldRenderManager
     {
         initProjection();
 
-        objectShader.bind();
-        objectShader.loadProjectionMatrix(projection);
-        objectShader.unbind();
+        staticObjectShader.bind();
+        staticObjectShader.loadProjectionMatrix(projection);
+        staticObjectShader.unbind();
+
+	    animatedObjectShader.bind();
+	    animatedObjectShader.loadProjectionMatrix(projection);
+	    animatedObjectShader.unbind();
 
         terrainShader.bind();
         terrainShader.loadProjectionMatrix(projection);
@@ -97,15 +110,37 @@ public class WorldRenderManager
     {
         prepare();
 
-        objectShader.bind();
+        staticObjectShader.bind();
 
-        objectShader.loadSkyColor(SKY);
-        objectShader.loadLights(lights);
-        objectShader.loadViewMatrix(camera);
+        staticObjectShader.loadSkyColor(SKY);
+        staticObjectShader.loadLights(lights);
+        staticObjectShader.loadViewMatrix(camera);
 
-        objectRenderer.render(objects);
+        for (Map.Entry<IModel, List<ModelTransform>> batch : objects.entrySet())
+        {
+        	if (batch.getKey() instanceof TexturedModel)
+	        {
+	        	staticObjectRenderer.render((TexturedModel)batch.getKey(), batch.getValue());
+	        }
+        }
 
-        objectShader.unbind();
+        staticObjectShader.unbind();
+
+	    animatedObjectShader.bind();
+
+	    animatedObjectShader.loadSkyColor(SKY);
+	    animatedObjectShader.loadLights(lights);
+	    animatedObjectShader.loadViewMatrix(camera);
+
+	    for (Map.Entry<IModel, List<ModelTransform>> batch : objects.entrySet())
+	    {
+		    if (batch.getKey() instanceof AnimatedModel)
+		    {
+			    animatedObjectRenderer.render((AnimatedModel)batch.getKey(), batch.getValue());
+		    }
+	    }
+
+	    animatedObjectShader.unbind();
 
         terrainShader.bind();
 
@@ -127,7 +162,7 @@ public class WorldRenderManager
     {
     	if (list.size() > 0)
 	    {
-	        TexturedModel model = list.get(0).getModel();
+	        IModel model = list.get(0).getModel();
 	        List<ModelTransform> batch = objects.get(model);
 	        if (batch != null)
 	        {
@@ -135,8 +170,7 @@ public class WorldRenderManager
 	        }
 	        else
 	        {
-	            batch = new ArrayList<>();
-	            batch.addAll(list);
+		        batch = new ArrayList<>(list);
 	            objects.put(model, batch);
 	        }
 	    }
@@ -144,7 +178,7 @@ public class WorldRenderManager
 
     public void processObject(ModelTransform object)
     {
-        TexturedModel model = object.getModel();
+        IModel model = object.getModel();
         List<ModelTransform> batch = objects.get(model);
         if (batch != null)
         {
@@ -170,7 +204,7 @@ public class WorldRenderManager
 
     public void cleanup()
     {
-        objectShader.cleanup();
+        staticObjectShader.cleanup();
         terrainShader.cleanup();
 	    shadowMapRenderer.cleanUp();
     }

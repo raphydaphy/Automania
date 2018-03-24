@@ -1,13 +1,13 @@
 package main.java.com.raphydaphy.automania.render;
 
-import main.java.com.raphydaphy.automania.models.TexturedModel;
+import main.java.com.raphydaphy.automania.models.IModel;
 
 public class ModelTransform
 {
     private Transform transform;
-    private TexturedModel model;
+    private IModel model;
 
-    public ModelTransform(Transform transform, TexturedModel model)
+    public ModelTransform(Transform transform, IModel model)
     {
         this.transform = transform;
         this.model = model;
@@ -18,7 +18,7 @@ public class ModelTransform
         return transform;
     }
 
-    public TexturedModel getModel()
+    public IModel getModel()
     {
         return model;
     }

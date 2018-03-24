@@ -3,7 +3,7 @@ package main.java.com.raphydaphy.automania.renderengine.renderer;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.models.RawModel;
 import main.java.com.raphydaphy.automania.models.TexturedModel;
-import main.java.com.raphydaphy.automania.renderengine.shader.ObjectShader;
+import main.java.com.raphydaphy.automania.renderengine.shader.StaticObjectShader;
 import main.java.com.raphydaphy.automania.renderengine.shader.Material;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import org.lwjgl.opengl.*;
@@ -12,11 +12,11 @@ import org.lwjgl.util.vector.Matrix4f;
 import java.util.List;
 import java.util.Map;
 
-public class ObjectRenderer
+public class StaticObjectRenderer
 {
-    private ObjectShader shader;
+    private StaticObjectShader shader;
 
-    public ObjectRenderer(ObjectShader shader, Matrix4f projection)
+    public StaticObjectRenderer(StaticObjectShader shader, Matrix4f projection)
     {
         this.shader = shader;
 
@@ -25,22 +25,18 @@ public class ObjectRenderer
         shader.unbind();
     }
 
-    public void render(Map<TexturedModel, List<ModelTransform>> objects)
+    public void render(TexturedModel model, List<ModelTransform> batch)
     {
-        for (TexturedModel model : objects.keySet())
+        prepareModel(model);
+
+        for (ModelTransform object : batch)
         {
-            prepareModel(model);
-            List<ModelTransform> batch = objects.get(model);
-
-            for (ModelTransform object : batch)
-            {
-                prepareInstance(object);
-                // Draw the vertices bound in GL_ARRAY_BUFFER using indices from GL_ELEMENT_BUFFER
-                GL11.glDrawElements(GL11.GL_TRIANGLES, model.getRawModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-            }
-
-            unbindModel();
+            prepareInstance(object);
+            // Draw the vertices bound in GL_ARRAY_BUFFER using indices from GL_ELEMENT_BUFFER
+            GL11.glDrawElements(GL11.GL_TRIANGLES, model.getRawModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
         }
+
+        unbindModel();
     }
 
     private void prepareModel(TexturedModel model)

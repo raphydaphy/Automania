@@ -1,6 +1,7 @@
 package main.java.com.raphydaphy.automania.renderengine.shadow;
 
 
+import main.java.com.raphydaphy.automania.models.IModel;
 import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.render.Camera;
 import main.java.com.raphydaphy.automania.render.Light;
@@ -69,7 +70,7 @@ public class ShadowMapMasterRenderer
 	 *                 entities in that list use.
 	 * @param sun      - the light acting as the sun in the scene.
 	 */
-	public void render(Map<TexturedModel, List<ModelTransform>> entities, Light sun)
+	public void render(Map<IModel, List<ModelTransform>> entities, Light sun)
 	{
 		shadowBox.update();
 		Vector3f sunPosition = sun.getPosition();

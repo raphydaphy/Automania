@@ -1,5 +1,6 @@
 package main.java.com.raphydaphy.automania.renderengine.animation;
 
+import main.java.com.raphydaphy.automania.models.AnimatedModel;
 import main.java.com.raphydaphy.automania.renderengine.DisplayManager;
 import org.lwjgl.util.vector.Matrix4f;
 

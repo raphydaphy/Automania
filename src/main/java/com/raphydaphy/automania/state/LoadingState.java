@@ -22,12 +22,22 @@ public class LoadingState extends State
 
 		world.updateVisibleChunks(new Vector3f(0,0,0));
 
+		int processed = 0;
+
 		for (Terrain terrain : world.getChunks().values())
 		{
 			if (terrain != null && !terrain.received)
 			{
-				terrain.processMesh(Resources.loader);
+				if (terrain.processMesh(Resources.loader))
+				{
+					processed++;
+				}
 				loaded = false;
+			}
+
+			if (processed > 1)
+			{
+				break;
 			}
 		}
 

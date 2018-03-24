@@ -101,4 +101,9 @@ public class VertexArray
 
 		return this;
 	}
+
+	public int getIndicesLength()
+	{
+		return indicesLength;
+	}
 }
