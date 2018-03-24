@@ -2,74 +2,47 @@ package main.java.com.raphydaphy.automania.renderengine.shader;
 
 import main.java.com.raphydaphy.automania.render.Camera;
 import main.java.com.raphydaphy.automania.render.Light;
+import main.java.com.raphydaphy.automania.renderengine.shader.uniform.UniformMatrix;
+import main.java.com.raphydaphy.automania.renderengine.shader.uniform.UniformVector;
+import main.java.com.raphydaphy.automania.renderengine.shader.uniform.UniformVectors;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class WorldShader extends ShaderProgram
 {
-	private int transformLocation;
-	private int projectionLocation;
-	private int viewLocation;
-	private int[] lightPositionLocation;
-	private int[] lightColorLocation;
-	private int[] lightAttenuationLocation;
-	private int skyColorLocation;
+	public UniformMatrix transform = new UniformMatrix("transform");
+	public UniformMatrix projection = new UniformMatrix("projection");
+	public UniformMatrix view = new UniformMatrix("view");
 
-	public WorldShader(String name)
+	private UniformVectors<Vector3f> lightPosition = new UniformVectors<>("light_position", MAX_LIGHTS);
+	private UniformVectors<Vector3f> lightColor = new UniformVectors<>("light_color", MAX_LIGHTS);
+	private UniformVectors<Vector3f> lightAttenuation = new UniformVectors<>("light_attenuation", MAX_LIGHTS);
+
+	public UniformVector<Vector3f> skyColor = new UniformVector<>("sky_color");
+
+	public WorldShader(String name, String... additionalAttributes)
 	{
-		super(name);
+		super(name, makeAttributeList(additionalAttributes));
+		storeAllUniformLocations(transform, projection, view, lightPosition, lightColor, lightAttenuation, skyColor);
 	}
 
-	@Override
-	protected void bindAttributes()
+	private static String[] makeAttributeList(String[] additionalAttributes)
 	{
-		// The ID's here are the ID's of the vertex buffers within the vertex array
-		// The number is whatever we tell it to be in Loader#loadToVAO
-		super.bindAttribute(0, "position");
-		super.bindAttribute(1, "normal");
-	}
+		String[] attributes = new String[2 + additionalAttributes.length];
+		attributes[0] = "position";
+		attributes[1] = "normal";
 
-	@Override
-	protected void getAllUniformLocations()
-	{
-		transformLocation = super.getUniformLocation("transform");
-		projectionLocation = super.getUniformLocation("projection");
-		viewLocation = super.getUniformLocation("view");
-		skyColorLocation = super.getUniformLocation("sky_color");
-
-		lightPositionLocation = new int[MAX_LIGHTS];
-		lightColorLocation = new int[MAX_LIGHTS];
-		lightAttenuationLocation = new int[MAX_LIGHTS];
-
-		for (int light = 0; light < MAX_LIGHTS; light++)
+		for (int additionlAttribute = 0; additionlAttribute < additionalAttributes.length; additionlAttribute++)
 		{
-			lightPositionLocation[light] = super.getUniformLocation("light_position[" + light + "]");
-			lightColorLocation[light] = super.getUniformLocation("light_color[" + light + "]");
-			lightAttenuationLocation[light] = super.getUniformLocation("light_attenuation[" + light + "]");
+			attributes[additionlAttribute + 2] = additionalAttributes[additionlAttribute];
 		}
-	}
 
-	public void loadSkyColor(Vector3f skyColor)
-	{
-		super.uniformVector3(skyColorLocation, skyColor);
-	}
-
-	public void loadTransformationMatrix(Matrix4f transform)
-	{
-		super.uniformMatrix4(transformLocation, transform);
-	}
-
-	public void loadProjectionMatrix(Matrix4f projection)
-	{
-		super.uniformMatrix4(projectionLocation, projection);
-	}
-
-	public void loadViewMatrix(Camera camera)
-	{
-		super.uniformMatrix4(viewLocation, MathUtils.createViewMatrix(camera));
+		return attributes;
 	}
 
 	public void loadLights(List<Light> lights)
@@ -78,14 +51,13 @@ public class WorldShader extends ShaderProgram
 		{
 			if (light < lights.size())
 			{
-				super.uniformVector3(lightPositionLocation[light], lights.get(light).getPosition());
-				super.uniformVector3(lightColorLocation[light], lights.get(light).getColor());
-				super.uniformVector3(lightAttenuationLocation[light], lights.get(light).getAttenuation());
+				lightPosition.load(lights.get(light).getPosition(), light);
+				lightColor.load(lights.get(light).getColor(), light);
+				lightAttenuation.load(lights.get(light).getAttenuation(), light);
 			} else
 			{
-				super.uniformVector3(lightAttenuationLocation[light], new Vector3f(1, 0, 0));
+				lightAttenuation.load(new Vector3f(1, 0, 0), light);
 			}
 		}
-
 	}
 }

@@ -1,6 +1,6 @@
 package main.java.com.raphydaphy.automania.models;
 
-import main.java.com.raphydaphy.automania.renderengine.shader.Material;
+import main.java.com.raphydaphy.automania.renderengine.load.Material;
 
 public class TexturedModel implements IModel
 {

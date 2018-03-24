@@ -4,13 +4,12 @@ import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.models.RawModel;
 import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.renderengine.shader.StaticObjectShader;
-import main.java.com.raphydaphy.automania.renderengine.shader.Material;
+import main.java.com.raphydaphy.automania.renderengine.load.Material;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Matrix4f;
 
 import java.util.List;
-import java.util.Map;
 
 public class StaticObjectRenderer
 {
@@ -21,7 +20,7 @@ public class StaticObjectRenderer
         this.shader = shader;
 
         shader.bind();
-        shader.loadProjectionMatrix(projection);
+        shader.projection.load(projection);
         shader.unbind();
     }
 
@@ -56,7 +55,7 @@ public class StaticObjectRenderer
         Material texture = model.getTexture();
 
         // Set all the normals to point upwards if the material is transparent
-        shader.setArtificialLighting(texture.usesArtificialLighting());
+	    shader.artificialLighting.load(texture.usesArtificialLighting() ? 1 : 0);
 
         // Disable culling if we are rendering a transparent texture to ensure that all faces are rendered
         if (texture.isTransparent())
@@ -87,6 +86,6 @@ public class StaticObjectRenderer
         Matrix4f transformationMatrix = MathUtils.createTransformationMatrix(object.getTransform().getPosition(),
                 object.getTransform().getRotX(), object.getTransform().getRotY(), object.getTransform().getRotZ(),
                 object.getTransform().getScale());
-        shader.loadTransformationMatrix(transformationMatrix);
+        shader.transform.load(transformationMatrix);
     }
 }

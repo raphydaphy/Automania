@@ -94,7 +94,7 @@ public class ShadowMapEntityRenderer
 	{
 		Matrix4f modelMatrix = MathUtils.createTransformationMatrix(modelTransform.getTransform().getPosition(), modelTransform.getTransform().getRotX(), modelTransform.getTransform().getRotY(), modelTransform.getTransform().getRotZ(), modelTransform.getTransform().getScale());
 		Matrix4f mvpMatrix = Matrix4f.mul(projectionViewMatrix, modelMatrix, null);
-		shader.loadMvpMatrix(mvpMatrix);
+		shader.mvpMatrix.load(mvpMatrix);
 	}
 
 }

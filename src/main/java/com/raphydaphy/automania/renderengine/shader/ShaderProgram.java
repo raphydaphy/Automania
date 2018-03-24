@@ -1,5 +1,6 @@
 package main.java.com.raphydaphy.automania.renderengine.shader;
 
+import main.java.com.raphydaphy.automania.renderengine.shader.uniform.Uniform;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -14,6 +15,8 @@ import java.nio.FloatBuffer;
 
 public abstract class ShaderProgram
 {
+    protected static final String EMPTY_ATTRIBUTE = "EMPTY";
+
     protected static final int MAX_LIGHTS = 4;
 
     private int programID;
@@ -23,7 +26,7 @@ public abstract class ShaderProgram
     // 4*4 matrix that can be reused for loading matrices
     private static FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
-    public ShaderProgram(String name)
+    ShaderProgram(String name, String... attributes)
     {
         vertexID = loadShader(name + ".vert", GL20.GL_VERTEX_SHADER);
         fragmentID = loadShader(name + ".frag", GL20.GL_FRAGMENT_SHADER);
@@ -33,7 +36,7 @@ public abstract class ShaderProgram
         GL20.glAttachShader(programID, vertexID);
         GL20.glAttachShader(programID, fragmentID);
 
-        bindAttributes();
+        bindAttributes(attributes);
 
         GL20.glLinkProgram(programID);
 
@@ -44,50 +47,15 @@ public abstract class ShaderProgram
             System.exit(-1);
         }
 
+    }
+
+    void storeAllUniformLocations(Uniform... uniforms)
+    {
+        for (Uniform uniform : uniforms)
+        {
+            uniform.storeUniformLocation(programID);
+        }
         GL20.glValidateProgram(programID);
-
-        getAllUniformLocations();
-
-    }
-
-    protected abstract void getAllUniformLocations();
-
-    protected int getUniformLocation(String uniformName)
-    {
-        return GL20.glGetUniformLocation(programID, uniformName);
-    }
-
-    protected void uniformInt(int location, int value)
-    {
-        GL20.glUniform1i(location, value);
-    }
-
-    protected void uniformFloat(int location, float value)
-    {
-        GL20.glUniform1f(location, value);
-    }
-
-    protected void uniformVector2(int location, Vector2f value)
-    {
-        GL20.glUniform2f(location, value.x, value.y);
-    }
-
-    protected void uniformVector3(int location, Vector3f value)
-    {
-        GL20.glUniform3f(location, value.x, value.y, value.z);
-    }
-
-    protected void uniformBoolean(int location, boolean value)
-    {
-        int intValue = value == false ? 0 : 1;
-        GL20.glUniform1i(location, intValue);
-    }
-
-    protected void uniformMatrix4(int location, Matrix4f value)
-    {
-        value.store(matrixBuffer);
-        matrixBuffer.flip();
-        GL20.glUniformMatrix4(location, false, matrixBuffer);
     }
 
     public void bind()
@@ -113,12 +81,15 @@ public abstract class ShaderProgram
         GL20.glDeleteProgram(programID);
     }
 
-    protected abstract void bindAttributes();
-
-    protected void bindAttribute(int attribute, String variableName)
+    protected void bindAttributes(String... attributes)
     {
-        // This will add the variable to the shader, allowing you to access it using the `in` keyword in the vertex shader with the name specified here
-        GL20.glBindAttribLocation(programID, attribute, variableName);
+	    for (int attribute = 0; attribute < attributes.length; attribute++)
+	    {
+	        if (attributes[attribute] != EMPTY_ATTRIBUTE)
+            {
+                GL20.glBindAttribLocation(programID, attribute, attributes[attribute]);
+            }
+        }
     }
 
     public static int loadShader(String file, int type)

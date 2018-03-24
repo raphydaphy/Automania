@@ -12,7 +12,7 @@ import main.java.com.raphydaphy.automania.renderengine.load.ModelData;
 import main.java.com.raphydaphy.automania.renderengine.load.OBJLoader;
 import main.java.com.raphydaphy.automania.renderengine.renderer.FontRenderManager;
 import main.java.com.raphydaphy.automania.renderengine.renderer.WorldRenderManager;
-import main.java.com.raphydaphy.automania.renderengine.shader.Material;
+import main.java.com.raphydaphy.automania.renderengine.load.Material;
 import main.java.com.raphydaphy.automania.terrain.InteractionManager;
 import main.java.com.raphydaphy.automania.terrain.Terrain;
 import main.java.com.raphydaphy.automania.terrain.World;

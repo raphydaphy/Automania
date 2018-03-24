@@ -27,7 +27,7 @@ public class UniformMatrices extends Uniform
 		}
 	}
 
-	public void load(Matrix4f[] matrices)
+	public void load(Matrix4f... matrices)
 	{
 		for (int matrix = 0; matrix < matrices.length; matrix++)
 		{

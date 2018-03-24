@@ -11,6 +11,7 @@ import main.java.com.raphydaphy.automania.renderengine.shader.StaticObjectShader
 import main.java.com.raphydaphy.automania.renderengine.shader.TerrainShader;
 import main.java.com.raphydaphy.automania.renderengine.shadow.ShadowMapMasterRenderer;
 import main.java.com.raphydaphy.automania.terrain.Terrain;
+import main.java.com.raphydaphy.automania.util.MathUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -85,15 +86,18 @@ public class WorldRenderManager
         initProjection();
 
         staticObjectShader.bind();
-        staticObjectShader.loadProjectionMatrix(projection);
+	    staticObjectShader.skyColor.load(SKY);
+	    staticObjectShader.projection.load(projection);
         staticObjectShader.unbind();
 
 	    animatedObjectShader.bind();
-	    animatedObjectShader.loadProjectionMatrix(projection);
+	    animatedObjectShader.skyColor.load(SKY);
+	    animatedObjectShader.projection.load(projection);
 	    animatedObjectShader.unbind();
 
         terrainShader.bind();
-        terrainShader.loadProjectionMatrix(projection);
+	    terrainShader.skyColor.load(SKY);
+        terrainShader.projection.load(projection);
         terrainShader.unbind();
     }
 
@@ -112,9 +116,8 @@ public class WorldRenderManager
 
         staticObjectShader.bind();
 
-        staticObjectShader.loadSkyColor(SKY);
         staticObjectShader.loadLights(lights);
-        staticObjectShader.loadViewMatrix(camera);
+        staticObjectShader.view.load(MathUtils.createViewMatrix(camera));
 
         for (Map.Entry<IModel, List<ModelTransform>> batch : objects.entrySet())
         {
@@ -128,9 +131,8 @@ public class WorldRenderManager
 
 	    animatedObjectShader.bind();
 
-	    animatedObjectShader.loadSkyColor(SKY);
 	    animatedObjectShader.loadLights(lights);
-	    animatedObjectShader.loadViewMatrix(camera);
+	    animatedObjectShader.view.load(MathUtils.createViewMatrix(camera));
 
 	    for (Map.Entry<IModel, List<ModelTransform>> batch : objects.entrySet())
 	    {
@@ -144,10 +146,8 @@ public class WorldRenderManager
 
         terrainShader.bind();
 
-        terrainShader.bindShadowMapSampler();
-        terrainShader.loadSkyColor(SKY);
         terrainShader.loadLights(lights);
-        terrainShader.loadViewMatrix(camera);
+	    terrainShader.view.load(MathUtils.createViewMatrix(camera));
 
         terrainRenderer.render(terrains, shadowMapRenderer.getToShadowMapSpaceMatrix());
 

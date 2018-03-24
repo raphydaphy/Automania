@@ -1,16 +1,12 @@
 package main.java.com.raphydaphy.automania.renderengine.renderer;
 
 import main.java.com.raphydaphy.automania.models.AnimatedModel;
-import main.java.com.raphydaphy.automania.models.RawModel;
-import main.java.com.raphydaphy.automania.models.TexturedModel;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.renderengine.shader.AnimatedObjectShader;
-import main.java.com.raphydaphy.automania.renderengine.shader.Material;
+import main.java.com.raphydaphy.automania.renderengine.load.Material;
 import main.java.com.raphydaphy.automania.util.MathUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.util.vector.Matrix4f;
 
 import java.util.List;
@@ -24,7 +20,7 @@ public class AnimatedObjectRenderer
 		this.shader = shader;
 
 		shader.bind();
-		shader.loadProjectionMatrix(projection);
+		shader.projection.load(projection);
 		shader.unbind();
 	}
 
@@ -64,7 +60,7 @@ public class AnimatedObjectRenderer
 		Matrix4f transformationMatrix = MathUtils.createTransformationMatrix(object.getTransform().getPosition(),
 				object.getTransform().getRotX(), object.getTransform().getRotY(), object.getTransform().getRotZ(),
 				object.getTransform().getScale());
-		shader.loadTransformationMatrix(transformationMatrix);
-		shader.loadJointTransforms(((AnimatedModel)object.getModel()).getJointTransforms());
+		shader.transform.load(transformationMatrix);
+		shader.jointTransforms.load(((AnimatedModel)object.getModel()).getJointTransforms());
 	}
 }

@@ -3,8 +3,7 @@ package main.java.com.raphydaphy.automania.models;
 import main.java.com.raphydaphy.automania.renderengine.animation.Animation;
 import main.java.com.raphydaphy.automania.renderengine.animation.Animator;
 import main.java.com.raphydaphy.automania.renderengine.animation.Joint;
-import main.java.com.raphydaphy.automania.renderengine.load.Texture;
-import main.java.com.raphydaphy.automania.renderengine.shader.Material;
+import main.java.com.raphydaphy.automania.renderengine.load.Material;
 import main.java.com.raphydaphy.automania.util.VertexArray;
 import org.lwjgl.util.vector.Matrix4f;
 

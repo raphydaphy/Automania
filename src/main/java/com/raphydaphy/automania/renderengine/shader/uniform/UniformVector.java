@@ -6,23 +6,15 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
-public class UniformVector extends Uniform
+public class UniformVector<T extends Vector> extends Uniform
 {
-	private Class<? extends Vector> type;
-
-	public UniformVector(String name, Class<? extends Vector> type)
+	public UniformVector(String name)
 	{
 		super(name);
-		this.type = type;
 	}
 
-	public void load(Vector value)
+	public void load(T value)
 	{
-		if (!(value.getClass().equals(type)))
-		{
-			System.err.println("Trying to load invalid vector type " + value.getClass().getName() + " to a uniform variable that only accepts vectors of type " + type.getName());
-		}
-		
 		if (value instanceof Vector4f)
 		{
 			load(((Vector4f)value).x, ((Vector4f)value).y, ((Vector4f)value).z, ((Vector4f)value).w);

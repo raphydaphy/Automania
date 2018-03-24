@@ -1,4 +1,4 @@
-package main.java.com.raphydaphy.automania.renderengine.shader;
+package main.java.com.raphydaphy.automania.renderengine.load;
 
 public class Material
 {

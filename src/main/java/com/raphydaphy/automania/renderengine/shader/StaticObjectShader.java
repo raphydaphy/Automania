@@ -1,31 +1,16 @@
 package main.java.com.raphydaphy.automania.renderengine.shader;
 
+import main.java.com.raphydaphy.automania.renderengine.shader.uniform.UniformInt;
+
 public class StaticObjectShader extends WorldShader
 {
 	private static final String name = "src/main/resources/shaders/static_object";
-	private int artificialLightingLocation;
+
+	public UniformInt artificialLighting = new UniformInt("artificial_lighting");
 
 	public StaticObjectShader()
 	{
-		super(name);
-	}
-
-	@Override
-	protected void bindAttributes()
-	{
-		super.bindAttributes();
-		super.bindAttribute(2, "tex_coords");
-	}
-
-	@Override
-	protected void getAllUniformLocations()
-	{
-		super.getAllUniformLocations();
-		artificialLightingLocation = super.getUniformLocation("artificial_lighting");
-	}
-
-	public void setArtificialLighting(boolean useArtificialLighting)
-	{
-		super.uniformInt(artificialLightingLocation, useArtificialLighting ? 1 : 0);
+		super(name, "tex_coords");
+		super.storeAllUniformLocations(artificialLighting);
 	}
 }

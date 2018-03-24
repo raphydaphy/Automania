@@ -21,13 +21,13 @@ public class TerrainRenderer
         this.shader = shader;
 
         shader.bind();
-        shader.loadProjectionMatrix(projection);
+        shader.projection.load(projection);
         shader.unbind();
     }
 
     public void render(List<Terrain> terrains, Matrix4f toShadowSpace)
     {
-        shader.loadShadowMapSpaceMatrix(toShadowSpace);
+    	shader.toShadowMapSpace.load(toShadowSpace);
         for (Terrain terrain : terrains)
         {
         	if (terrain.received)
@@ -69,6 +69,6 @@ public class TerrainRenderer
     {
         // Generate a transformation matrix based on the transform position, rotation and scale
         Matrix4f transformationMatrix = MathUtils.createTransformationMatrix(new Vector3f(terrain.getX(), terrain.getY(), terrain.getZ()), 0, 0, 0, 1);
-        shader.loadTransformationMatrix(transformationMatrix);
+        shader.transform.load(transformationMatrix);
     }
 }
