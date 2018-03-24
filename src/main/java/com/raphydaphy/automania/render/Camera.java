@@ -63,9 +63,9 @@ public class Camera
         {
             distanceFromPlayer = 2;
         }
-        else if (distanceFromPlayer > 25)
+        else if (distanceFromPlayer > 250)
         {
-            distanceFromPlayer = 25;
+            distanceFromPlayer = 250;
         }
     }
 

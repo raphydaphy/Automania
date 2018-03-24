@@ -7,6 +7,7 @@ import main.java.com.raphydaphy.automania.render.Camera;
 import main.java.com.raphydaphy.automania.render.Light;
 import main.java.com.raphydaphy.automania.render.ModelTransform;
 import main.java.com.raphydaphy.automania.renderengine.shader.AnimatedObjectShader;
+import main.java.com.raphydaphy.automania.renderengine.shader.SkyboxShader;
 import main.java.com.raphydaphy.automania.renderengine.shader.StaticObjectShader;
 import main.java.com.raphydaphy.automania.renderengine.shader.TerrainShader;
 import main.java.com.raphydaphy.automania.renderengine.shadow.ShadowMapMasterRenderer;
@@ -26,8 +27,6 @@ public class WorldRenderManager
 	public static final float NEAR_PLANE = 0.1f;
 	public static final float FAR_PLANE = 1000f;
 
-    private static final Vector3f SKY = new Vector3f(0.5f, 0.5f, 0.5f);
-
     private StaticObjectShader staticObjectShader;
     private StaticObjectRenderer staticObjectRenderer;
 
@@ -37,7 +36,10 @@ public class WorldRenderManager
     private TerrainShader terrainShader;
     private TerrainRenderer terrainRenderer;
 
-    private ShadowMapMasterRenderer shadowMapRenderer;
+	private ShadowMapMasterRenderer shadowMapRenderer;
+
+    private SkyboxShader skyboxShader;
+    private SkyboxRenderer skyboxRenderer;
 
     private Matrix4f projection;
     private Map<IModel, List<ModelTransform>> objects = new HashMap<>();
@@ -58,6 +60,9 @@ public class WorldRenderManager
         terrainRenderer = new TerrainRenderer(terrainShader, projection);
 
         shadowMapRenderer = new ShadowMapMasterRenderer(camera);
+
+        skyboxShader = new SkyboxShader();
+        skyboxRenderer = new SkyboxRenderer(skyboxShader, projection);
     }
 
     private void initProjection()
@@ -86,25 +91,24 @@ public class WorldRenderManager
         initProjection();
 
         staticObjectShader.bind();
-	    staticObjectShader.skyColor.load(SKY);
 	    staticObjectShader.projection.load(projection);
         staticObjectShader.unbind();
 
 	    animatedObjectShader.bind();
-	    animatedObjectShader.skyColor.load(SKY);
 	    animatedObjectShader.projection.load(projection);
 	    animatedObjectShader.unbind();
 
         terrainShader.bind();
-	    terrainShader.skyColor.load(SKY);
         terrainShader.projection.load(projection);
         terrainShader.unbind();
+
+        skyboxRenderer.setProjectionMatrix(projection);
     }
 
     private void prepare()
     {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        GL11.glClearColor(SKY.x, SKY.y, SKY.z, 1);
+        GL11.glClearColor(0, 0, 0, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 	    GL13.glActiveTexture(GL13.GL_TEXTURE5);
 	    GL11.glBindTexture(GL11.GL_TEXTURE_2D, getShadowMapTexture());
@@ -114,8 +118,12 @@ public class WorldRenderManager
     {
         prepare();
 
+
+	    skyboxRenderer.render(camera);
+
         staticObjectShader.bind();
 
+	    staticObjectShader.skyColor.load(SkyboxRenderer.HORIZON);
         staticObjectShader.loadLights(lights);
         staticObjectShader.view.load(MathUtils.createViewMatrix(camera));
 
@@ -131,6 +139,7 @@ public class WorldRenderManager
 
 	    animatedObjectShader.bind();
 
+	    animatedObjectShader.skyColor.load(SkyboxRenderer.HORIZON);
 	    animatedObjectShader.loadLights(lights);
 	    animatedObjectShader.view.load(MathUtils.createViewMatrix(camera));
 
@@ -146,12 +155,14 @@ public class WorldRenderManager
 
         terrainShader.bind();
 
+	    terrainShader.skyColor.load(SkyboxRenderer.HORIZON);
         terrainShader.loadLights(lights);
 	    terrainShader.view.load(MathUtils.createViewMatrix(camera));
 
         terrainRenderer.render(terrains, shadowMapRenderer.getToShadowMapSpaceMatrix());
 
         terrainShader.unbind();
+
 
         objects.clear();
         terrains.clear();
@@ -205,8 +216,10 @@ public class WorldRenderManager
     public void cleanup()
     {
         staticObjectShader.cleanup();
+        animatedObjectShader.cleanup();
         terrainShader.cleanup();
 	    shadowMapRenderer.cleanUp();
+	    skyboxShader.cleanup();
     }
 
     public int getShadowMapTexture()
